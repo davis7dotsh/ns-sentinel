@@ -1,0 +1,8 @@
+node_modules
+.turbo
+.svelte-kit
+dist
+bun.lockb
+.DS_Store
+
+.env

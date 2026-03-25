@@ -1,0 +1,12 @@
+{
+  "name": "@ns-sentinel/youtube-read",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "googleapis": "^171.4.0"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@ns-sentinel/gmail-read",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google-cloud/local-auth": "^3.0.1",
+    "googleapis": "^171.4.0"
+  }
+}
