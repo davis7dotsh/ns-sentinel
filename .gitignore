@@ -6,3 +6,6 @@ bun.lockb
 .DS_Store
 
 .env
+.env.*
+packages/gmail-read/credentials.json
+packages/gmail-read/token.json

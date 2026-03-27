@@ -21,21 +21,40 @@ if (!slackToken) {
 }
 
 const slack = new WebClient(slackToken);
+
+const listAllPublicChannels = async () => {
+  const channels = [];
+  let cursor: string | undefined;
+
+  do {
+    const response = await slack.conversations.list({
+      limit: 200,
+      exclude_archived: true,
+      types: "public_channel,private_channel",
+      cursor,
+    });
+
+    channels.push(...(response.channels ?? []));
+    cursor = response.response_metadata?.next_cursor || undefined;
+  } while (cursor);
+
+  return channels;
+};
+
 const auth = await slack.auth.test();
-const channelsResponse = await slack.conversations.list({
-  limit: 5,
-  exclude_archived: true,
-  types: "public_channel",
-});
+const channels = await listAllPublicChannels();
 
 const output = {
   team: auth.team,
   teamId: auth.team_id,
   botUserId: auth.user_id,
-  channels: (channelsResponse.channels ?? []).map((channel) => ({
+  channels: channels.map((channel) => ({
     id: channel.id,
     name: channel.name,
     isPrivate: channel.is_private ?? false,
+    isShared: channel.is_shared ?? false,
+    isExtShared: channel.is_ext_shared ?? false,
+    isOrgShared: channel.is_org_shared ?? false,
   })),
 };
 
@@ -46,7 +65,7 @@ if (!channelId) {
 } else {
   const historyResponse = await slack.conversations.history({
     channel: channelId,
-    limit: 5,
+    limit: 10,
   });
 
   console.log(
