@@ -7,7 +7,10 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
+    "@effect/platform-node": "4.0.0-beta.41",
     "@google-cloud/local-auth": "^3.0.1",
+    "@ns-sentinel/core": "workspace:*",
+    "effect": "4.0.0-beta.41",
     "googleapis": "^171.4.0"
   }
 }

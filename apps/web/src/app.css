@@ -1,15 +1,16 @@
 :root {
   color-scheme: light;
-  font-family:
-    Inter,
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  background: #f7f7f8;
-  color: #111827;
+  font-family: "IBM Plex Sans", "Avenir Next", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(circle at top, rgb(246 231 203 / 0.9), transparent 35%),
+    linear-gradient(180deg, #f4efe6 0%, #efe8dc 100%);
+  color: #1f1a16;
+  --surface: rgb(255 252 247 / 0.9);
+  --surface-strong: #fffdf9;
+  --border: rgb(96 66 29 / 0.16);
+  --accent: #8b5e34;
+  --accent-soft: #e8d8c4;
+  --muted: #6e6257;
 }
 
 html,
@@ -24,27 +25,134 @@ body {
 
 main {
   min-height: 100vh;
-  display: grid;
-  place-items: center;
-  padding: 2rem;
+  padding: 3rem clamp(1.25rem, 2vw, 2.5rem) 4rem;
 }
 
 .hero {
-  padding: 3rem 4rem;
-  border-radius: 24px;
-  background: white;
-  box-shadow: 0 18px 50px rgb(15 23 42 / 0.1);
-  text-align: center;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vw, 4rem);
+  border: 1px solid var(--border);
+  border-radius: 32px;
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 0.68), rgb(255 250 242 / 0.92)),
+    var(--surface);
+  box-shadow: 0 22px 60px rgb(60 37 12 / 0.08);
 }
 
 .hero h1 {
-  margin: 0;
-  font-size: clamp(2.5rem, 6vw, 4.5rem);
-  line-height: 1;
+  margin: 0.75rem 0 0;
+  max-width: 13ch;
+  font-size: clamp(2.8rem, 8vw, 5.8rem);
+  line-height: 0.96;
+  letter-spacing: -0.05em;
 }
 
-.hero p {
-  margin: 0.75rem 0 0;
-  color: #4b5563;
+.eyebrow {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.lede {
+  max-width: 44rem;
+  margin: 1.25rem 0 0;
+  color: var(--muted);
   font-size: 1.1rem;
+  line-height: 1.65;
+}
+
+code {
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: #5a391b;
+  font-family: "IBM Plex Mono", "SFMono-Regular", monospace;
+}
+
+.grid {
+  max-width: 72rem;
+  margin: 1.5rem auto 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface-strong);
+  box-shadow: 0 12px 32px rgb(60 37 12 / 0.06);
+}
+
+.card-header {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.card span {
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: #efe7db;
+  color: #7c6854;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.card span.ready {
+  background: #dfead9;
+  color: #355d35;
+}
+
+.card p {
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+dl {
+  margin: 1rem 0 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+dl div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+dt {
+  color: var(--accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+dd {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 700px) {
+  main {
+    padding-top: 1.25rem;
+  }
+
+  .hero {
+    border-radius: 26px;
+  }
 }

@@ -1,15 +1,15 @@
 {
-  "name": "@ns-sentinel/x-read",
+  "name": "@ns-sentinel/core",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
-    "start": "bun run src/index.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {
     "@effect/platform-node": "4.0.0-beta.41",
-    "@ns-sentinel/core": "workspace:*",
-    "@xdevplatform/xdk": "^0.5.0",
     "effect": "4.0.0-beta.41"
   }
 }

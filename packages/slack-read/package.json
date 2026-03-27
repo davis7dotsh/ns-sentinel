@@ -7,6 +7,9 @@
     "check": "tsc --noEmit"
   },
   "dependencies": {
-    "@slack/web-api": "^7.15.0"
+    "@effect/platform-node": "4.0.0-beta.41",
+    "@ns-sentinel/core": "workspace:*",
+    "@slack/web-api": "^7.15.0",
+    "effect": "4.0.0-beta.41"
   }
 }
