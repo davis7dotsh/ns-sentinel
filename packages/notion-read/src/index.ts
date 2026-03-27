@@ -10,6 +10,7 @@ import { Client } from "@notionhq/client";
 import { Config, Effect, Layer, Option, ServiceMap } from "effect";
 import {
   createSentinelError,
+  isDirectExecution,
   runNodeMain,
   withEnvConfig,
 } from "@ns-sentinel/core";
@@ -134,4 +135,6 @@ export const program = Effect.gen(function* () {
   });
 }).pipe(Effect.provide(layer));
 
-runNodeMain(program);
+if (isDirectExecution(import.meta.url)) {
+  runNodeMain(program);
+}

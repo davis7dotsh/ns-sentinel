@@ -1,8 +1,8 @@
 /**
  * Getting started:
  * 1. In Google Cloud, create or reuse a project and enable the Gmail API.
- * 2. Create an OAuth client for a desktop app and download the client JSON into `packages/gmail-read/credentials.json`.
- * 3. Run `bun run test:gmail` from the repo root. The first run opens a browser, asks for `gmail.readonly`, and saves a local `token.json`.
+ * 2. Create an OAuth client for a desktop app and download the client JSON into the repo-root `credentials.json`.
+ * 3. Run `bun run test:gmail` from the repo root. The first run opens a browser, asks for `gmail.readonly`, and saves a repo-root `token.json`.
  * 4. Optionally export `GMAIL_QUERY` to filter the sample inbox search.
  */
 
@@ -14,15 +14,16 @@ import { google } from "googleapis";
 import { Config, Effect, Layer, Option, ServiceMap } from "effect";
 import {
   createSentinelError,
-  resolvePackageDir,
+  findWorkspaceRoot,
+  isDirectExecution,
   runNodeMain,
   withEnvConfig,
 } from "@ns-sentinel/core";
 
 const scopes = ["https://www.googleapis.com/auth/gmail.readonly"];
-const packageDir = resolvePackageDir(import.meta.url);
-const defaultCredentialsPath = resolve(packageDir, "credentials.json");
-const defaultTokenPath = resolve(packageDir, "token.json");
+const workspaceRoot = findWorkspaceRoot() ?? process.cwd();
+const defaultCredentialsPath = resolve(workspaceRoot, "credentials.json");
+const defaultTokenPath = resolve(workspaceRoot, "token.json");
 
 const GmailConfigSource = Config.all({
   credentialsPath: Config.string("GMAIL_CREDENTIALS_PATH").pipe(
@@ -344,4 +345,6 @@ export const program = Effect.gen(function* () {
   });
 }).pipe(Effect.provide(layer));
 
-runNodeMain(program);
+if (isDirectExecution(import.meta.url)) {
+  runNodeMain(program);
+}

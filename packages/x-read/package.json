@@ -2,6 +2,9 @@
   "name": "@ns-sentinel/x-read",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "start": "bun run src/index.ts",
     "check": "tsc --noEmit"

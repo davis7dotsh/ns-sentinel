@@ -1,4 +1,7 @@
 import { defineConfig } from "drizzle-kit";
+import { loadWorkspaceEnv } from "@ns-sentinel/core";
+
+loadWorkspaceEnv();
 
 const databaseUrl =
   process.env.DATABASE_URL ??

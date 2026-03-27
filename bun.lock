@@ -13,13 +13,24 @@
         "typescript": "^5.9.3",
       },
     },
+    "apps/live-crawler": {
+      "name": "live-crawler",
+      "dependencies": {
+        "@effect/platform-node": "4.0.0-beta.41",
+        "@ns-sentinel/core": "workspace:*",
+        "@ns-sentinel/crawl-helpers": "workspace:*",
+        "@ns-sentinel/db": "workspace:*",
+        "@ns-sentinel/youtube-read": "workspace:*",
+        "effect": "4.0.0-beta.41",
+      },
+    },
     "apps/web": {
       "name": "web",
       "dependencies": {
-        "@effect/platform-node": "4.0.0-beta.40",
+        "@effect/platform-node": "4.0.0-beta.41",
         "@sveltejs/adapter-auto": "latest",
         "@sveltejs/kit": "latest",
-        "effect": "4.0.0-beta.40",
+        "effect": "4.0.0-beta.41",
       },
       "devDependencies": {
         "@sveltejs/vite-plugin-svelte": "latest",
@@ -33,27 +44,39 @@
     "packages/core": {
       "name": "@ns-sentinel/core",
       "dependencies": {
-        "@effect/platform-node": "4.0.0-beta.40",
-        "effect": "4.0.0-beta.40",
+        "@effect/platform-node": "4.0.0-beta.41",
+        "dotenv": "^17.3.1",
+        "effect": "4.0.0-beta.41",
+      },
+    },
+    "packages/crawl-helpers": {
+      "name": "@ns-sentinel/crawl-helpers",
+      "dependencies": {
+        "@effect/platform-node": "4.0.0-beta.41",
+        "@ns-sentinel/core": "workspace:*",
+        "@ns-sentinel/db": "workspace:*",
+        "@ns-sentinel/youtube-read": "workspace:*",
+        "drizzle-orm": "^0.45.1",
+        "effect": "4.0.0-beta.41",
       },
     },
     "packages/db": {
       "name": "@ns-sentinel/db",
       "dependencies": {
-        "@effect/platform-node": "4.0.0-beta.40",
+        "@effect/platform-node": "4.0.0-beta.41",
         "@ns-sentinel/core": "workspace:*",
         "drizzle-orm": "^0.45.1",
-        "effect": "4.0.0-beta.40",
+        "effect": "4.0.0-beta.41",
         "postgres": "^3.4.8",
       },
     },
     "packages/gmail-read": {
       "name": "@ns-sentinel/gmail-read",
       "dependencies": {
-        "@effect/platform-node": "4.0.0-beta.40",
+        "@effect/platform-node": "4.0.0-beta.41",
         "@google-cloud/local-auth": "^3.0.1",
         "@ns-sentinel/core": "workspace:*",
-        "effect": "4.0.0-beta.40",
+        "effect": "4.0.0-beta.41",
         "googleapis": "^171.4.0",
       },
     },
@@ -69,27 +92,27 @@
     "packages/slack-read": {
       "name": "@ns-sentinel/slack-read",
       "dependencies": {
-        "@effect/platform-node": "4.0.0-beta.40",
+        "@effect/platform-node": "4.0.0-beta.41",
         "@ns-sentinel/core": "workspace:*",
         "@slack/web-api": "^7.15.0",
-        "effect": "4.0.0-beta.40",
+        "effect": "4.0.0-beta.41",
       },
     },
     "packages/x-read": {
       "name": "@ns-sentinel/x-read",
       "dependencies": {
-        "@effect/platform-node": "4.0.0-beta.40",
+        "@effect/platform-node": "4.0.0-beta.41",
         "@ns-sentinel/core": "workspace:*",
         "@xdevplatform/xdk": "^0.5.0",
-        "effect": "4.0.0-beta.40",
+        "effect": "4.0.0-beta.41",
       },
     },
     "packages/youtube-read": {
       "name": "@ns-sentinel/youtube-read",
       "dependencies": {
-        "@effect/platform-node": "4.0.0-beta.40",
+        "@effect/platform-node": "4.0.0-beta.41",
         "@ns-sentinel/core": "workspace:*",
-        "effect": "4.0.0-beta.40",
+        "effect": "4.0.0-beta.41",
         "googleapis": "^171.4.0",
       },
     },
@@ -97,7 +120,7 @@
   "packages": {
     "@drizzle-team/brocli": ["@drizzle-team/brocli@0.10.2", "", {}, "sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w=="],
 
-    "@effect/platform-node": ["@effect/platform-node@4.0.0-beta.40", "", { "dependencies": { "@effect/platform-node-shared": "^4.0.0-beta.40", "mime": "^4.1.0", "undici": "^7.24.0" }, "peerDependencies": { "effect": "^4.0.0-beta.40", "ioredis": "^5.7.0" } }, "sha512-IRBlYErAdImh0Pv92PppgFK2wnNAv48Bib6FHjp+89tjzfZ0LHv5TQvEeCXo8ZgHJDyxiPJ5/ugV+jnzpZCG5Q=="],
+    "@effect/platform-node": ["@effect/platform-node@4.0.0-beta.41", "", { "dependencies": { "@effect/platform-node-shared": "^4.0.0-beta.41", "mime": "^4.1.0", "undici": "^7.24.0" }, "peerDependencies": { "effect": "^4.0.0-beta.41", "ioredis": "^5.7.0" } }, "sha512-lgsWfvJfxwg7xXT5rK3xcPyAFPAYXXJ0u/6yCu2suOMhdR5w2W6oA2L2pIQaqap8qR8uEVB5pHq6dqVfdRP7Nw=="],
 
     "@effect/platform-node-shared": ["@effect/platform-node-shared@4.0.0-beta.41", "", { "dependencies": { "@types/ws": "^8.18.1", "ws": "^8.19.0" }, "peerDependencies": { "effect": "^4.0.0-beta.41" } }, "sha512-YzKWz1G8YofCrQ0Thxymlk71CM3q7R1vzO2vtnb7KSHkTJrvrQB8FbZaM8mEddYOoamR25f46lidFKErmmotKg=="],
 
@@ -196,6 +219,8 @@
     "@notionhq/client": ["@notionhq/client@5.12.0", "", {}, "sha512-yLdw1saMUx4lmwMXOk72QK/N0wuw9x0JuOAuAX+q2Z8IEZzB5di6SEKL6a8eNh5cy3RLKdeXaXJFF4NF2LwXDg=="],
 
     "@ns-sentinel/core": ["@ns-sentinel/core@workspace:packages/core"],
+
+    "@ns-sentinel/crawl-helpers": ["@ns-sentinel/crawl-helpers@workspace:packages/crawl-helpers"],
 
     "@ns-sentinel/db": ["@ns-sentinel/db@workspace:packages/db"],
 
@@ -343,6 +368,8 @@
 
     "devalue": ["devalue@5.6.4", "", {}, "sha512-Gp6rDldRsFh/7XuouDbxMH3Mx8GMCcgzIb1pDTvNyn8pZGQ22u+Wa+lGV9dQCltFQ7uVw0MhRyb8XDskNFOReA=="],
 
+    "dotenv": ["dotenv@17.3.1", "", {}, "sha512-IO8C/dzEb6O3F9/twg6ZLXz164a2fhTnEWb95H23Dm4OuN+92NmEAlTrupP9VW6Jm3sO26tQlqyvyi4CsnY9GA=="],
+
     "drizzle-kit": ["drizzle-kit@0.31.10", "", { "dependencies": { "@drizzle-team/brocli": "^0.10.2", "@esbuild-kit/esm-loader": "^2.5.5", "esbuild": "^0.25.4", "tsx": "^4.21.0" }, "bin": { "drizzle-kit": "bin.cjs" } }, "sha512-7OZcmQUrdGI+DUNNsKBn1aW8qSoKuTH7d0mYgSP8bAzdFzKoovxEFnoGQp2dVs82EOJeYycqRtciopszwUf8bw=="],
 
     "drizzle-orm": ["drizzle-orm@0.45.1", "", { "peerDependencies": { "@aws-sdk/client-rds-data": ">=3", "@cloudflare/workers-types": ">=4", "@electric-sql/pglite": ">=0.2.0", "@libsql/client": ">=0.10.0", "@libsql/client-wasm": ">=0.10.0", "@neondatabase/serverless": ">=0.10.0", "@op-engineering/op-sqlite": ">=2", "@opentelemetry/api": "^1.4.1", "@planetscale/database": ">=1.13", "@prisma/client": "*", "@tidbcloud/serverless": "*", "@types/better-sqlite3": "*", "@types/pg": "*", "@types/sql.js": "*", "@upstash/redis": ">=1.34.7", "@vercel/postgres": ">=0.8.0", "@xata.io/client": "*", "better-sqlite3": ">=7", "bun-types": "*", "expo-sqlite": ">=14.0.0", "gel": ">=2", "knex": "*", "kysely": "*", "mysql2": ">=2", "pg": ">=8", "postgres": ">=3", "sql.js": ">=1", "sqlite3": ">=5" }, "optionalPeers": ["@aws-sdk/client-rds-data", "@cloudflare/workers-types", "@electric-sql/pglite", "@libsql/client", "@libsql/client-wasm", "@neondatabase/serverless", "@op-engineering/op-sqlite", "@opentelemetry/api", "@planetscale/database", "@prisma/client", "@tidbcloud/serverless", "@types/better-sqlite3", "@types/pg", "@types/sql.js", "@upstash/redis", "@vercel/postgres", "@xata.io/client", "better-sqlite3", "bun-types", "expo-sqlite", "gel", "knex", "kysely", "mysql2", "pg", "postgres", "sql.js", "sqlite3"] }, "sha512-Te0FOdKIistGNPMq2jscdqngBRfBpC8uMFVwqjf6gtTVJHIQ/dosgV/CLBU2N4ZJBsXL5savCba9b0YJskKdcA=="],
@@ -353,7 +380,7 @@
 
     "ecdsa-sig-formatter": ["ecdsa-sig-formatter@1.0.11", "", { "dependencies": { "safe-buffer": "^5.0.1" } }, "sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ=="],
 
-    "effect": ["effect@4.0.0-beta.40", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "fast-check": "^4.5.3", "find-my-way-ts": "^0.1.6", "ini": "^6.0.0", "kubernetes-types": "^1.30.0", "msgpackr": "^1.11.8", "multipasta": "^0.2.7", "toml": "^3.0.0", "uuid": "^13.0.0", "yaml": "^2.8.2" } }, "sha512-GA7Q1TglPIrEjg/Dtj3AvXbyh00A4sAXgu3JGDUHRPZ4hxMRC5CMAsCzCH0140zetRMpe7LOH8uVi5gb4t/8oQ=="],
+    "effect": ["effect@4.0.0-beta.41", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "fast-check": "^4.5.3", "find-my-way-ts": "^0.1.6", "ini": "^6.0.0", "kubernetes-types": "^1.30.0", "msgpackr": "^1.11.8", "multipasta": "^0.2.7", "toml": "^3.0.0", "uuid": "^13.0.0", "yaml": "^2.8.2" } }, "sha512-kBjbmo2qqXbOgrvZcPgVdgsOOWcGPYwRcvGO3aGPWJhpXxDFNfgtwqtU6asMq2M7LSFRx1SA+3BzJm7FDqtxew=="],
 
     "emoji-regex": ["emoji-regex@9.2.2", "", {}, "sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg=="],
 
@@ -480,6 +507,8 @@
     "lightningcss-win32-arm64-msvc": ["lightningcss-win32-arm64-msvc@1.32.0", "", { "os": "win32", "cpu": "arm64" }, "sha512-8SbC8BR40pS6baCM8sbtYDSwEVQd4JlFTOlaD3gWGHfThTcABnNDBda6eTZeqbofalIJhFx0qKzgHJmcPTnGdw=="],
 
     "lightningcss-win32-x64-msvc": ["lightningcss-win32-x64-msvc@1.32.0", "", { "os": "win32", "cpu": "x64" }, "sha512-Amq9B/SoZYdDi1kFrojnoqPLxYhQ4Wo5XiL8EVJrVsB8ARoC1PWW6VGtT0WKCemjy8aC+louJnjS7U18x3b06Q=="],
+
+    "live-crawler": ["live-crawler@workspace:apps/live-crawler"],
 
     "locate-character": ["locate-character@3.0.0", "", {}, "sha512-SW13ws7BjaeJ6p7Q6CO2nchbYEc3X3J6WrmTTDto7yMPqVSZTUyY5Tjbid+Ab8gLnATtygYtiDIJGQRRn2ZOiA=="],
 
@@ -680,10 +709,6 @@
     "zimmerframe": ["zimmerframe@1.1.4", "", {}, "sha512-B58NGBEoc8Y9MWWCQGl/gq9xBCe4IiKM0a2x7GZdQKOW5Exr8S1W24J6OgM1njK8xCRGvAJIL/MxXHf6SkmQKQ=="],
 
     "@esbuild-kit/core-utils/esbuild": ["esbuild@0.18.20", "", { "optionalDependencies": { "@esbuild/android-arm": "0.18.20", "@esbuild/android-arm64": "0.18.20", "@esbuild/android-x64": "0.18.20", "@esbuild/darwin-arm64": "0.18.20", "@esbuild/darwin-x64": "0.18.20", "@esbuild/freebsd-arm64": "0.18.20", "@esbuild/freebsd-x64": "0.18.20", "@esbuild/linux-arm": "0.18.20", "@esbuild/linux-arm64": "0.18.20", "@esbuild/linux-ia32": "0.18.20", "@esbuild/linux-loong64": "0.18.20", "@esbuild/linux-mips64el": "0.18.20", "@esbuild/linux-ppc64": "0.18.20", "@esbuild/linux-riscv64": "0.18.20", "@esbuild/linux-s390x": "0.18.20", "@esbuild/linux-x64": "0.18.20", "@esbuild/netbsd-x64": "0.18.20", "@esbuild/openbsd-x64": "0.18.20", "@esbuild/sunos-x64": "0.18.20", "@esbuild/win32-arm64": "0.18.20", "@esbuild/win32-ia32": "0.18.20", "@esbuild/win32-x64": "0.18.20" }, "bin": { "esbuild": "bin/esbuild" } }, "sha512-ceqxoedUrcayh7Y7ZX6NdbbDzGROiyVBgC4PriJThBKSVPWnnFHZAkfI1lJT8QFkOwH4qOS2SJkS4wvpGl8BpA=="],
-
-    "@ns-sentinel/notion-read/@effect/platform-node": ["@effect/platform-node@4.0.0-beta.41", "", { "dependencies": { "@effect/platform-node-shared": "^4.0.0-beta.41", "mime": "^4.1.0", "undici": "^7.24.0" }, "peerDependencies": { "effect": "^4.0.0-beta.41", "ioredis": "^5.7.0" } }, "sha512-lgsWfvJfxwg7xXT5rK3xcPyAFPAYXXJ0u/6yCu2suOMhdR5w2W6oA2L2pIQaqap8qR8uEVB5pHq6dqVfdRP7Nw=="],
-
-    "@ns-sentinel/notion-read/effect": ["effect@4.0.0-beta.41", "", { "dependencies": { "@standard-schema/spec": "^1.1.0", "fast-check": "^4.5.3", "find-my-way-ts": "^0.1.6", "ini": "^6.0.0", "kubernetes-types": "^1.30.0", "msgpackr": "^1.11.8", "multipasta": "^0.2.7", "toml": "^3.0.0", "uuid": "^13.0.0", "yaml": "^2.8.2" } }, "sha512-kBjbmo2qqXbOgrvZcPgVdgsOOWcGPYwRcvGO3aGPWJhpXxDFNfgtwqtU6asMq2M7LSFRx1SA+3BzJm7FDqtxew=="],
 
     "gaxios/uuid": ["uuid@9.0.1", "", { "bin": { "uuid": "dist/bin/uuid" } }, "sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA=="],
 
