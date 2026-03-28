@@ -27,7 +27,7 @@
       });
 
       if (!response.ok) {
-        throw new Error("The demo generator did not accept that prompt.");
+        throw new Error("The generator did not accept that prompt.");
       }
 
       const snapshot = (await response.json()) as {
@@ -40,7 +40,7 @@
       errorMessage =
         cause instanceof Error
           ? cause.message
-          : "Failed to start the generated page demo.";
+          : "Failed to start the generated page.";
     } finally {
       isSubmitting = false;
     }
@@ -63,9 +63,8 @@
         Describe the page you want to exist.
       </h1>
       <p class="max-w-2xl text-sm leading-6 text-stone-600">
-        This hard-coded demo still follows the eventual flow: prompt in the
-        shell, generation state on a destination route, then a sandboxed iframe
-        once the result is ready.
+        This launches a real Upstash Box generation run, stores the artifacts in
+        Postgres, and serves the finished page back through the dashboard shell.
       </p>
     </div>
 

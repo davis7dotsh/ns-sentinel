@@ -1,18 +1,11 @@
 import { error } from "@sveltejs/kit";
-import {
-  getGeneratedDemoSnapshot,
-  getLatestGeneratedDemoRunForSlug,
-} from "$lib/server/generated-demo-runs";
+import { getGeneratedAppSnapshot } from "$lib/server/generated-apps";
 
-export const load = ({ params, url }) => {
-  const runId = url.searchParams.get("run");
-  const snapshot = runId
-    ? getGeneratedDemoSnapshot(runId)
-    : getLatestGeneratedDemoRunForSlug(params.slug)?.id
-      ? getGeneratedDemoSnapshot(
-          getLatestGeneratedDemoRunForSlug(params.slug)!.id,
-        )
-      : null;
+export const load = async ({ params, url }) => {
+  const snapshot = await getGeneratedAppSnapshot({
+    runId: url.searchParams.get("run"),
+    slug: params.slug,
+  });
 
   if (!snapshot || snapshot.slug !== params.slug) {
     throw error(404, "Generated page not found.");

@@ -1,12 +1,12 @@
 import { json } from "@sveltejs/kit";
-import { createGeneratedDemoRun } from "$lib/server/generated-demo-runs";
+import { createGeneratedAppEditRun } from "$lib/server/generated-apps";
 
 export const POST = async ({ params, request }) => {
   const body = (await request.json()) as {
     prompt?: string;
   };
 
-  const snapshot = createGeneratedDemoRun({
+  const snapshot = await createGeneratedAppEditRun({
     prompt: body.prompt ?? "",
     slug: params.slug,
   });

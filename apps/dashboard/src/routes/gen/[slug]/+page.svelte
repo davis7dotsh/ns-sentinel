@@ -119,9 +119,9 @@
             {snapshot.statusLabel}
           </p>
           <p class="text-sm leading-6 text-stone-600">
-            We already navigated to the final route. Once the demo runtime marks
-            this revision ready, the iframe preview will replace this state in
-            place.
+            We already navigated to the final route. Once Box finishes
+            generating this revision, the iframe preview will replace this state
+            in place.
           </p>
         </div>
       </div>
@@ -143,8 +143,8 @@
       <div class="space-y-1">
         <p class="text-sm font-medium text-stone-900">Edit this page</p>
         <p class="text-sm leading-6 text-stone-600">
-          This still regenerates the same hard-coded demo, but it creates a new
-          revision and reruns the realtime flow.
+          This creates a fresh version, reruns generation, and swaps the preview
+          once the new artifacts are ready.
         </p>
       </div>
 

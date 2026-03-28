@@ -1,9 +1,11 @@
-import { getGeneratedDemoSnapshot } from "$lib/server/generated-demo-runs";
+import { getGeneratedAppSnapshotByRunId } from "$lib/server/generated-apps";
 
 const encoder = new TextEncoder();
 
 const toSseMessage = (
-  snapshot: NonNullable<ReturnType<typeof getGeneratedDemoSnapshot>>,
+  snapshot: NonNullable<
+    Awaited<ReturnType<typeof getGeneratedAppSnapshotByRunId>>
+  >,
 ) => encoder.encode(`data: ${JSON.stringify(snapshot)}\n\n`);
 
 export const GET = ({ params }) => {
@@ -30,12 +32,12 @@ export const GET = ({ params }) => {
         controller.close();
       };
 
-      const pushSnapshot = () => {
+      const pushSnapshot = async () => {
         if (isClosed) {
           return;
         }
 
-        const snapshot = getGeneratedDemoSnapshot(params.runId);
+        const snapshot = await getGeneratedAppSnapshotByRunId(params.runId);
 
         if (!snapshot) {
           close();
@@ -60,8 +62,10 @@ export const GET = ({ params }) => {
         }
       };
 
-      pushSnapshot();
-      interval = setInterval(pushSnapshot, 400);
+      void pushSnapshot();
+      interval = setInterval(() => {
+        void pushSnapshot();
+      }, 400);
     },
     cancel() {
       isClosed = true;

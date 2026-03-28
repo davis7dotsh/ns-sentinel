@@ -8,6 +8,13 @@
       "when": 1774586028815,
       "tag": "0000_late_luckman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1774685924742,
+      "tag": "0001_furry_christian_walker",
+      "breakpoints": true
     }
   ]
 }

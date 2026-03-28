@@ -220,3 +220,73 @@ export const syncRuns = pgTable(
     index("sync_runs_source_status_idx").on(table.source, table.status),
   ],
 );
+
+export const generatedApps = pgTable(
+  "generated_apps",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    slug: varchar("slug", { length: 160 }).notNull().unique(),
+    title: text("title").notNull(),
+    ...timestamps,
+  },
+  (table) => [index("generated_apps_slug_idx").on(table.slug)],
+);
+
+export const generatedAppVersions = pgTable(
+  "generated_app_versions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    appId: uuid("app_id")
+      .notNull()
+      .references(() => generatedApps.id, { onDelete: "cascade" }),
+    versionNumber: integer("version_number").notNull(),
+    title: text("title").notNull(),
+    prompt: text("prompt").notNull(),
+    status: varchar("status", { length: 32 }).notNull(),
+    errorMessage: text("error_message"),
+    ...timestamps,
+  },
+  (table) => [
+    index("generated_app_versions_app_id_idx").on(table.appId),
+    index("generated_app_versions_status_idx").on(table.status),
+  ],
+);
+
+export const generatedArtifacts = pgTable(
+  "generated_artifacts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    appVersionId: uuid("app_version_id")
+      .notNull()
+      .references(() => generatedAppVersions.id, { onDelete: "cascade" }),
+    kind: varchar("kind", { length: 32 }).notNull(),
+    slug: varchar("slug", { length: 160 }),
+    content: text("content").notNull(),
+    metadata: jsonb("metadata"),
+    ...timestamps,
+  },
+  (table) => [
+    index("generated_artifacts_app_version_id_idx").on(table.appVersionId),
+    index("generated_artifacts_kind_slug_idx").on(table.kind, table.slug),
+  ],
+);
+
+export const generatedEvents = pgTable(
+  "generated_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    appVersionId: uuid("app_version_id")
+      .notNull()
+      .references(() => generatedAppVersions.id, { onDelete: "cascade" }),
+    eventType: varchar("event_type", { length: 64 }).notNull(),
+    message: text("message").notNull(),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("generated_events_app_version_id_idx").on(table.appVersionId),
+    index("generated_events_created_at_idx").on(table.createdAt),
+  ],
+);
