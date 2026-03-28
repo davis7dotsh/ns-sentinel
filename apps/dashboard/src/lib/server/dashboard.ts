@@ -14,6 +14,23 @@ const toDisplayCount = (value: bigint | null | undefined) =>
 const toDisplayDate = (value: Date | null | undefined) =>
   value ? value.toISOString() : null;
 
+const getYoutubeChannelUrl = (channel: {
+  readonly ytCustomUrl: string | null;
+  readonly ytChannelId: string;
+}) =>
+  channel.ytCustomUrl
+    ? `https://www.youtube.com/${channel.ytCustomUrl.replace(/^@?/u, "@")}`
+    : `https://www.youtube.com/channel/${channel.ytChannelId}`;
+
+const getYoutubeVideoUrl = (ytVideoId: string) =>
+  `https://www.youtube.com/watch?v=${ytVideoId}`;
+
+const getYoutubeCommentUrl = (ytVideoId: string, ytCommentId: string) =>
+  `${getYoutubeVideoUrl(ytVideoId)}&lc=${ytCommentId}`;
+
+const getYoutubeAuthorChannelUrl = (authorChannelId: string | null) =>
+  authorChannelId ? `https://www.youtube.com/channel/${authorChannelId}` : null;
+
 const runDashboardEffect = async <A>(
   effect: Effect.Effect<A, DashboardDataError, Database>,
 ) =>
@@ -59,6 +76,7 @@ export const getChannelsData = () =>
         avatarUrl: channel.avatarUrl,
         ytChannelId: channel.ytChannelId,
         ytCustomUrl: channel.ytCustomUrl,
+        youtubeUrl: getYoutubeChannelUrl(channel),
         subscriberCount: toDisplayCount(channel.subscriberCount),
         totalViewCount: toDisplayCount(channel.totalViewCount),
         videoCount: channel.videoCount,
@@ -159,6 +177,7 @@ export const getChannelPageData = (channelId: string) =>
           bannerUrl: channel.bannerUrl,
           ytChannelId: channel.ytChannelId,
           ytCustomUrl: channel.ytCustomUrl,
+          youtubeUrl: getYoutubeChannelUrl(channel),
           subscriberCount: toDisplayCount(channel.subscriberCount),
           totalViewCount: toDisplayCount(channel.totalViewCount),
           videoCount: channel.videoCount,
@@ -172,6 +191,7 @@ export const getChannelPageData = (channelId: string) =>
           publishedAt: video.publishedAt.toISOString(),
           durationSeconds: video.durationSeconds,
           contentKind: video.contentKind,
+          youtubeUrl: getYoutubeVideoUrl(video.ytVideoId),
           stats: latestSnapshotByVideoId.get(video.id) ?? {
             viewCount: null,
             likeCount: null,
@@ -266,6 +286,7 @@ export const getVideoPageData = (input: {
         channel: {
           id: channel.id,
           name: channel.name,
+          youtubeUrl: getYoutubeChannelUrl(channel),
         },
         video: {
           id: video.id,
@@ -279,6 +300,7 @@ export const getVideoPageData = (input: {
           defaultLanguage: video.defaultLanguage,
           contentKind: video.contentKind,
           tags: video.tags ?? [],
+          youtubeUrl: getYoutubeVideoUrl(video.ytVideoId),
           stats: {
             viewCount: toDisplayCount(latestSnapshot?.viewCount),
             likeCount: toDisplayCount(latestSnapshot?.likeCount),
@@ -291,10 +313,15 @@ export const getVideoPageData = (input: {
           ytCommentId: comment.ytCommentId,
           authorDisplayName: comment.authorDisplayName,
           authorChannelId: comment.authorChannelId,
+          authorChannelUrl: getYoutubeAuthorChannelUrl(comment.authorChannelId),
           bodyText: comment.bodyText,
           likeCount: toDisplayCount(comment.likeCount),
           replyCount: comment.replyCount,
           publishedAt: comment.publishedAt.toISOString(),
+          youtubeUrl: getYoutubeCommentUrl(
+            video.ytVideoId,
+            comment.ytCommentId,
+          ),
         })),
       };
     }),

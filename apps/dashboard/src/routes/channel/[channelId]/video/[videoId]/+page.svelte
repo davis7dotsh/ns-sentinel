@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import RichText from "$lib/components/RichText.svelte";
   import { getVideoPage } from "$lib/dashboard.remote";
   import {
     formatCount,
@@ -10,12 +11,36 @@
 
   const channelId = $derived(page.params.channelId ?? "");
   const videoId = $derived(page.params.videoId ?? "");
+  let commentSort = $state<"likes" | "latest" | "oldest">("likes");
   const videoPage = $derived(
     getVideoPage({
       channelId,
       videoId,
     }),
   );
+  const sortedComments = $derived.by(() => {
+    if (!videoPage.ready) {
+      return [];
+    }
+
+    return [...videoPage.current.comments].sort((left, right) => {
+      if (commentSort === "latest") {
+        return (
+          new Date(right.publishedAt).getTime() -
+          new Date(left.publishedAt).getTime()
+        );
+      }
+
+      if (commentSort === "oldest") {
+        return (
+          new Date(left.publishedAt).getTime() -
+          new Date(right.publishedAt).getTime()
+        );
+      }
+
+      return Number(right.likeCount ?? 0) - Number(left.likeCount ?? 0);
+    });
+  });
 </script>
 
 <svelte:head>
@@ -43,7 +68,14 @@
 
           <div class="space-y-3">
             <h1 class="text-3xl font-semibold tracking-tight text-stone-950">
-              {videoPage.current.video.title}
+              <a
+                class="underline decoration-stone-300 underline-offset-6 hover:decoration-stone-900"
+                href={videoPage.current.video.youtubeUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {videoPage.current.video.title}
+              </a>
             </h1>
 
             <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-600">
@@ -60,12 +92,21 @@
               <span
                 >{formatDuration(videoPage.current.video.durationSeconds)}</span
               >
+              <a
+                class="underline decoration-stone-300 underline-offset-4 hover:decoration-stone-700"
+                href={videoPage.current.video.youtubeUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Watch on YouTube
+              </a>
             </div>
 
             {#if videoPage.current.video.description}
-              <p class="whitespace-pre-wrap text-sm leading-6 text-stone-700">
-                {videoPage.current.video.description}
-              </p>
+              <RichText
+                class="text-sm leading-6 text-stone-700"
+                text={videoPage.current.video.description}
+              />
             {/if}
           </div>
         </div>
@@ -111,28 +152,61 @@
     <section class="space-y-4">
       <div class="flex items-baseline justify-between">
         <h2 class="text-xl font-semibold text-stone-950">Comments</h2>
-        <p class="text-sm text-stone-500">
-          {formatCount(videoPage.current.comments.length)} stored
-        </p>
+        <div class="flex items-center gap-4">
+          <p class="text-sm text-stone-500">
+            {formatCount(videoPage.current.comments.length)} stored
+          </p>
+          <label class="flex items-center gap-2 text-sm text-stone-600">
+            <span>Sort</span>
+            <select
+              bind:value={commentSort}
+              class="border border-stone-300 bg-transparent px-2 py-1 text-sm text-stone-700 outline-none"
+            >
+              <option value="likes">Most likes</option>
+              <option value="latest">Latest</option>
+              <option value="oldest">Oldest</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       <div class="border-y border-stone-300/80">
-        {#each videoPage.current.comments as comment (comment.id)}
+        {#each sortedComments as comment (comment.id)}
           <article class="space-y-2 border-b border-stone-200/80 py-4">
             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-              <p class="font-medium text-stone-900">
-                {comment.authorDisplayName ?? "Unknown"}
-              </p>
+              {#if comment.authorChannelUrl}
+                <a
+                  class="font-medium text-stone-900 underline decoration-stone-300 underline-offset-4 hover:decoration-stone-700"
+                  href={comment.authorChannelUrl}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {comment.authorDisplayName ?? "Unknown"}
+                </a>
+              {:else}
+                <p class="font-medium text-stone-900">
+                  {comment.authorDisplayName ?? "Unknown"}
+                </p>
+              {/if}
               <p class="text-stone-500">{formatDate(comment.publishedAt)}</p>
               <p class="text-stone-500">
                 {formatCount(comment.likeCount)} likes
               </p>
               <p class="text-stone-500">{comment.replyCount ?? 0} replies</p>
+              <a
+                class="text-stone-500 underline decoration-stone-300 underline-offset-4 hover:decoration-stone-700"
+                href={comment.youtubeUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Open
+              </a>
             </div>
 
-            <p class="whitespace-pre-wrap text-sm leading-6 text-stone-700">
-              {comment.bodyText}
-            </p>
+            <RichText
+              class="text-sm leading-6 text-stone-700"
+              text={comment.bodyText}
+            />
           </article>
         {/each}
       </div>

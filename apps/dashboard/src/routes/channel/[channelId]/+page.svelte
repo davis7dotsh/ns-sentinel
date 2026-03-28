@@ -1,5 +1,7 @@
 <script lang="ts">
   import { page } from "$app/state";
+  import Avatar from "$lib/components/Avatar.svelte";
+  import RichText from "$lib/components/RichText.svelte";
   import { getChannelPage } from "$lib/dashboard.remote";
   import { formatCount, formatDate, formatDuration } from "$lib/format";
 
@@ -17,17 +19,22 @@
       <a class="text-sm text-stone-500" href="/">Back to channels</a>
 
       <div class="flex items-start gap-4">
-        {#if channelPage.current.channel.avatarUrl}
-          <img
-            alt={channelPage.current.channel.name}
-            class="h-16 w-16 rounded-full object-cover"
-            src={channelPage.current.channel.avatarUrl}
-          />
-        {/if}
+        <Avatar
+          alt={channelPage.current.channel.name}
+          size="lg"
+          src={channelPage.current.channel.avatarUrl}
+        />
 
         <div class="space-y-2">
           <h1 class="text-3xl font-semibold tracking-tight text-stone-950">
-            {channelPage.current.channel.name}
+            <a
+              class="underline decoration-stone-300 underline-offset-6 hover:decoration-stone-900"
+              href={channelPage.current.channel.youtubeUrl}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {channelPage.current.channel.name}
+            </a>
           </h1>
           <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-600">
             <span>
@@ -35,13 +42,21 @@
             </span>
             <span>{channelPage.current.channel.videoCount ?? 0} videos</span>
             {#if channelPage.current.channel.ytCustomUrl}
-              <span>{channelPage.current.channel.ytCustomUrl}</span>
+              <a
+                class="underline decoration-stone-300 underline-offset-4 hover:decoration-stone-700"
+                href={channelPage.current.channel.youtubeUrl}
+                rel="noreferrer"
+                target="_blank"
+              >
+                {channelPage.current.channel.ytCustomUrl}
+              </a>
             {/if}
           </div>
           {#if channelPage.current.channel.description}
-            <p class="max-w-3xl text-sm leading-6 text-stone-600">
-              {channelPage.current.channel.description}
-            </p>
+            <RichText
+              class="max-w-3xl text-sm leading-6 text-stone-600"
+              text={channelPage.current.channel.description}
+            />
           {/if}
         </div>
       </div>
@@ -49,12 +64,12 @@
 
     <div class="space-y-1">
       {#each channelPage.current.videos as video (video.id)}
-        <a
-          class="grid gap-4 border-b border-stone-200/80 py-4 transition hover:bg-stone-50/80 sm:grid-cols-[13rem_minmax(0,1fr)_auto]"
-          href={`/channel/${channelId}/video/${video.id}`}
+        <article
+          class="grid gap-4 border-b border-stone-200/80 py-4 sm:grid-cols-[13rem_minmax(0,1fr)_auto]"
         >
-          <div
-            class="relative aspect-video overflow-hidden rounded-sm bg-stone-200"
+          <a
+            class="relative aspect-video overflow-hidden rounded-sm bg-stone-200 transition hover:opacity-95"
+            href={`/channel/${channelId}/video/${video.id}`}
           >
             {#if video.thumbnailUrl}
               <img
@@ -68,9 +83,12 @@
             >
               {formatDuration(video.durationSeconds)}
             </span>
-          </div>
+          </a>
 
-          <div class="min-w-0 space-y-2">
+          <a
+            class="min-w-0 space-y-2 transition hover:bg-stone-50/80"
+            href={`/channel/${channelId}/video/${video.id}`}
+          >
             <h2 class="line-clamp-2 text-lg font-medium text-stone-950">
               {video.title}
             </h2>
@@ -79,10 +97,10 @@
               <span>{formatCount(video.stats.likeCount)} likes</span>
               <span>{formatCount(video.stats.commentCount)} comments</span>
             </div>
-          </div>
+          </a>
 
           <p class="text-sm text-stone-500">{formatDate(video.publishedAt)}</p>
-        </a>
+        </article>
       {/each}
     </div>
   </section>

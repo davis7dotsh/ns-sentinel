@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Avatar from "$lib/components/Avatar.svelte";
   import { getChannels } from "$lib/dashboard.remote";
   import { formatCount, formatDate } from "$lib/format";
 
@@ -22,18 +23,14 @@
   {#if channels.ready}
     <div class="border-y border-stone-300/80">
       {#each channels.current as channel (channel.id)}
-        <a
-          class="grid gap-4 border-b border-stone-200/80 py-5 transition hover:bg-stone-50/80 sm:grid-cols-[minmax(0,1.4fr)_auto_auto_auto]"
-          href={`/channel/${channel.id}`}
+        <article
+          class="grid gap-4 border-b border-stone-200/80 py-5 sm:grid-cols-[minmax(0,1.4fr)_auto_auto_auto_auto]"
         >
-          <div class="flex min-w-0 items-center gap-4">
-            {#if channel.avatarUrl}
-              <img
-                alt={channel.name}
-                class="h-12 w-12 rounded-full object-cover"
-                src={channel.avatarUrl}
-              />
-            {/if}
+          <a
+            class="flex min-w-0 items-center gap-4 transition hover:bg-stone-50/80"
+            href={`/channel/${channel.id}`}
+          >
+            <Avatar alt={channel.name} size="md" src={channel.avatarUrl} />
 
             <div class="min-w-0">
               <h2 class="truncate text-lg font-medium text-stone-950">
@@ -43,7 +40,7 @@
                 {channel.ytCustomUrl ?? channel.ytChannelId}
               </p>
             </div>
-          </div>
+          </a>
 
           <p class="text-sm text-stone-700">
             {formatCount(channel.subscriberCount)} subs
@@ -52,7 +49,15 @@
           <p class="text-sm text-stone-500">
             {formatDate(channel.lastYoutubeSyncedAt)}
           </p>
-        </a>
+          <a
+            class="text-sm text-stone-500 underline decoration-stone-300 underline-offset-4 hover:decoration-stone-700"
+            href={channel.youtubeUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            YouTube
+          </a>
+        </article>
       {/each}
     </div>
   {:else}
