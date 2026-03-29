@@ -10,6 +10,7 @@
     "check": "turbo run check",
     "db:start": "./scripts/db-start.sh",
     "db:stop": "./scripts/db-stop.sh",
+    "dev:convex": "bun run --cwd packages/convex dev",
     "db:generate": "bunx drizzle-kit generate --config=packages/db/drizzle.config.ts",
     "db:push": "bunx drizzle-kit push --config=packages/db/drizzle.config.ts",
     "db:studio": "bunx drizzle-kit studio --config=packages/db/drizzle.config.ts",

@@ -1,0 +1,24 @@
+{
+  "name": "@ns-sentinel/convex",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts",
+    "./private-auth": "./src/private-auth.ts",
+    "./schema": "./convex/schema.ts",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "check": "tsc --noEmit",
+    "dev": "convex dev"
+  },
+  "dependencies": {
+    "convex": "^1.34.0",
+    "convex-helpers": "^0.1.114"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^5.9.3"
+  }
+}

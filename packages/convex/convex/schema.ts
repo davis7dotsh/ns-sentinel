@@ -1,0 +1,38 @@
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+const generationStatus = v.union(
+  v.literal("working"),
+  v.literal("ready"),
+  v.literal("error"),
+);
+
+export default defineSchema({
+  pages: defineTable({
+    createdAt: v.number(),
+    currentVersionId: v.optional(v.id("pageVersions")),
+    latestVersionNumber: v.number(),
+    slug: v.string(),
+    title: v.string(),
+    updatedAt: v.number(),
+  }).index("by_slug", ["slug"]),
+
+  pageVersions: defineTable({
+    createdAt: v.number(),
+    cssBlobId: v.optional(v.id("_storage")),
+    endpointBlobId: v.optional(v.id("_storage")),
+    errorMessage: v.optional(v.string()),
+    htmlBlobId: v.optional(v.id("_storage")),
+    jsBlobId: v.optional(v.id("_storage")),
+    pageId: v.id("pages"),
+    prompt: v.string(),
+    status: generationStatus,
+    title: v.string(),
+    triggerRunId: v.optional(v.string()),
+    updatedAt: v.number(),
+    versionNumber: v.number(),
+  })
+    .index("by_page_id", ["pageId"])
+    .index("by_page_id_and_version_number", ["pageId", "versionNumber"])
+    .index("by_status", ["status"]),
+});
