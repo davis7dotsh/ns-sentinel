@@ -23,9 +23,11 @@
         "@effect/platform-node": "4.0.0-beta.41",
         "@ns-sentinel/core": "workspace:*",
         "@ns-sentinel/db": "workspace:*",
+        "@ns-sentinel/trigger": "workspace:*",
         "@sveltejs/adapter-vercel": "^6.3.3",
         "@sveltejs/kit": "^2.55.0",
         "@sveltejs/vite-plugin-svelte": "^7.0.0",
+        "@trigger.dev/sdk": "^4.4.3",
         "@types/node": "^25.5.0",
         "@upstash/box": "^0.1.30",
         "effect": "4.0.0-beta.41",
@@ -140,6 +142,17 @@
         "@ns-sentinel/core": "workspace:*",
         "@slack/web-api": "^7.15.0",
         "effect": "4.0.0-beta.41",
+      },
+    },
+    "packages/trigger": {
+      "name": "@ns-sentinel/trigger",
+      "dependencies": {
+        "@ns-sentinel/core": "workspace:*",
+        "@ns-sentinel/db": "workspace:*",
+        "@trigger.dev/sdk": "4.4.3",
+        "@upstash/box": "^0.1.30",
+        "effect": "4.0.0-beta.41",
+        "zod": "^4.3.6",
       },
     },
     "packages/x-read": {
@@ -287,6 +300,8 @@
     "@ns-sentinel/notion-read": ["@ns-sentinel/notion-read@workspace:packages/notion-read"],
 
     "@ns-sentinel/slack-read": ["@ns-sentinel/slack-read@workspace:packages/slack-read"],
+
+    "@ns-sentinel/trigger": ["@ns-sentinel/trigger@workspace:packages/trigger"],
 
     "@ns-sentinel/x-read": ["@ns-sentinel/x-read@workspace:packages/x-read"],
 
