@@ -1,13 +1,22 @@
 import { error } from "@sveltejs/kit";
-import { getGeneratedAppSnapshot } from "$lib/server/generated-apps";
+import { fetchGeneratedApi } from "$lib/server/generated-api";
 
 export const load = async ({ params, url }) => {
-  const snapshot = await getGeneratedAppSnapshot({
-    runId: url.searchParams.get("run"),
-    slug: params.slug,
-  });
+  const response = await fetchGeneratedApi(
+    `/api/generated-demo/apps/${params.slug}`,
+    undefined,
+    url.searchParams,
+  );
 
-  if (!snapshot || snapshot.slug !== params.slug) {
+  if (!response.ok) {
+    throw error(404, "Generated page not found.");
+  }
+
+  const snapshot = (await response.json()) as {
+    readonly slug: string;
+  };
+
+  if (snapshot.slug !== params.slug) {
     throw error(404, "Generated page not found.");
   }
 

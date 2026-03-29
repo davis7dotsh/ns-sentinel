@@ -1,12 +1,19 @@
-import { json } from "@sveltejs/kit";
-import { createGeneratedAppRun } from "$lib/server/generated-apps";
+import {
+  copyGeneratedApiHeaders,
+  fetchGeneratedApi,
+} from "$lib/server/generated-api";
 
 export const POST = async ({ request }) => {
-  const body = (await request.json()) as {
-    prompt?: string;
-  };
+  const response = await fetchGeneratedApi("/api/generated-demo/runs", {
+    body: await request.text(),
+    headers: {
+      "Content-Type": request.headers.get("content-type") ?? "application/json",
+    },
+    method: "POST",
+  });
 
-  const snapshot = await createGeneratedAppRun(body.prompt ?? "");
-
-  return json(snapshot, { status: 201 });
+  return new Response(response.body, {
+    headers: copyGeneratedApiHeaders(response.headers),
+    status: response.status,
+  });
 };

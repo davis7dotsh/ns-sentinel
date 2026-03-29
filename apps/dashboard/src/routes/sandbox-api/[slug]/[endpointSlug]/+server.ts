@@ -1,17 +1,17 @@
-import { error, json } from "@sveltejs/kit";
-import { runGeneratedEndpoint } from "$lib/server/generated-apps";
+import {
+  copyGeneratedApiHeaders,
+  fetchGeneratedApi,
+} from "$lib/server/generated-api";
 
 export const GET = async ({ params, url }) => {
-  const result = await runGeneratedEndpoint({
-    endpointSlug: params.endpointSlug,
-    runId: url.searchParams.get("run"),
-    searchParams: url.searchParams,
-    slug: params.slug,
+  const response = await fetchGeneratedApi(
+    `/sandbox-api/${params.slug}/${params.endpointSlug}`,
+    undefined,
+    url.searchParams,
+  );
+
+  return new Response(response.body, {
+    headers: copyGeneratedApiHeaders(response.headers),
+    status: response.status,
   });
-
-  if (result === null) {
-    throw error(404, "Generated endpoint not found.");
-  }
-
-  return json(result);
 };

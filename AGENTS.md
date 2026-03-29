@@ -3,6 +3,7 @@ Project guidelines:
 - use `bun` as the package manager and command runner
 - when installing new packages, use `bun install` instead of manually editing `package.json`
 - use modern svelte and sveltekit patterns and primitives
+- in sveltekit server code, use `$env/dynamic/private` or `$env/static/private` for secrets and server env access. do not use `process.env`
 - avoid `as any` at all costs, lean on inference and real types
 - use effect v4
 - use tailwindcss for styling whenever possible, only fall back to custom css when needed

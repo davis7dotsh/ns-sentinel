@@ -1,10 +1,9 @@
 import { loadWorkspaceEnv } from "@ns-sentinel/core";
 import { sveltekit } from "@sveltejs/kit/vite";
-import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 
 loadWorkspaceEnv(import.meta.dirname);
 
 export default defineConfig({
-  plugins: [tailwindcss(), sveltekit()],
+  plugins: [sveltekit()],
 });

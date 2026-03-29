@@ -225,6 +225,7 @@ export const generatedApps = pgTable(
   "generated_apps",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    boxId: varchar("box_id", { length: 160 }),
     slug: varchar("slug", { length: 160 }).notNull().unique(),
     title: text("title").notNull(),
     ...timestamps,

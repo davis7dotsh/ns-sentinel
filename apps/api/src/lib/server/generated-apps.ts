@@ -1,9 +1,9 @@
 import { Box } from "@upstash/box";
 import { and, desc, eq } from "drizzle-orm";
 import { Data, Effect } from "effect";
+import { env } from "$env/dynamic/private";
 import { error } from "@sveltejs/kit";
 import { z } from "zod/v3";
-import { loadWorkspaceEnv } from "@ns-sentinel/core";
 import { Database, layer as databaseLayer, schema } from "@ns-sentinel/db";
 import {
   getGeneratedChannelsCatalogData,
@@ -18,8 +18,6 @@ class GeneratedAppsError extends Data.TaggedError("GeneratedAppsError")<{
 type GeneratedAppRecord = typeof schema.generatedApps.$inferSelect;
 type GeneratedAppVersionRecord =
   typeof schema.generatedAppVersions.$inferSelect;
-type GeneratedArtifactRecord = typeof schema.generatedArtifacts.$inferSelect;
-type GeneratedEventRecord = typeof schema.generatedEvents.$inferSelect;
 
 type GeneratedAppSnapshot = {
   readonly eventType: string;
@@ -108,10 +106,8 @@ const getAsyncFunction = () =>
   }) => Promise<unknown>;
 
 const getGenerationConfig = () => {
-  loadWorkspaceEnv();
-
-  const upstashBoxApiKey = process.env.UPSTASH_BOX_API_KEY;
-  const openAiApiKey = process.env.OPENAI_API_KEY;
+  const upstashBoxApiKey = env.UPSTASH_BOX_API_KEY;
+  const openAiApiKey = env.OPENAI_API_KEY;
 
   if (!upstashBoxApiKey) {
     throw new GeneratedAppsError({
@@ -157,6 +153,43 @@ const getVersionById = async (database: DatabaseService, runId: string) =>
     where: (generatedAppVersions, { eq }) => eq(generatedAppVersions.id, runId),
   });
 
+const getLatestVersionForApp = async (
+  database: DatabaseService,
+  appId: string,
+) =>
+  (await database.db.query.generatedAppVersions.findFirst({
+    orderBy: (generatedAppVersions, { desc }) => [
+      desc(generatedAppVersions.versionNumber),
+    ],
+    where: (generatedAppVersions, { eq }) =>
+      eq(generatedAppVersions.appId, appId),
+  })) ?? null;
+
+const getLatestReadyVersionForApp = async (
+  database: DatabaseService,
+  appId: string,
+  input?: {
+    readonly excludeVersionId?: string;
+  },
+) => {
+  const readyVersions = await database.db
+    .select()
+    .from(schema.generatedAppVersions)
+    .where(
+      and(
+        eq(schema.generatedAppVersions.appId, appId),
+        eq(schema.generatedAppVersions.status, "ready"),
+      ),
+    )
+    .orderBy(desc(schema.generatedAppVersions.versionNumber))
+    .limit(input?.excludeVersionId ? 2 : 1);
+
+  return (
+    readyVersions.find((version) => version.id !== input?.excludeVersionId) ??
+    null
+  );
+};
+
 const getLatestVersionForSlug = async (
   database: DatabaseService,
   slug: string,
@@ -167,15 +200,7 @@ const getLatestVersionForSlug = async (
     return null;
   }
 
-  return (
-    (await database.db.query.generatedAppVersions.findFirst({
-      orderBy: (generatedAppVersions, { desc }) => [
-        desc(generatedAppVersions.versionNumber),
-      ],
-      where: (generatedAppVersions, { eq }) =>
-        eq(generatedAppVersions.appId, app.id),
-    })) ?? null
-  );
+  return getLatestVersionForApp(database, app.id);
 };
 
 const getLatestReadyVersionForSlug = async (
@@ -188,18 +213,7 @@ const getLatestReadyVersionForSlug = async (
     return null;
   }
 
-  return (
-    (await database.db.query.generatedAppVersions.findFirst({
-      orderBy: (generatedAppVersions, { desc }) => [
-        desc(generatedAppVersions.versionNumber),
-      ],
-      where: (generatedAppVersions, { and, eq }) =>
-        and(
-          eq(generatedAppVersions.appId, app.id),
-          eq(generatedAppVersions.status, "ready"),
-        ),
-    })) ?? null
-  );
+  return getLatestReadyVersionForApp(database, app.id);
 };
 
 const buildSnapshot = async (
@@ -283,6 +297,24 @@ const updateVersion = async (
     .where(eq(schema.generatedAppVersions.id, input.appVersionId));
 };
 
+const updateApp = async (
+  database: DatabaseService,
+  input: {
+    readonly appId: string;
+    readonly boxId?: string;
+    readonly title?: string;
+  },
+) => {
+  await database.db
+    .update(schema.generatedApps)
+    .set({
+      boxId: input.boxId,
+      title: input.title,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.generatedApps.id, input.appId));
+};
+
 const saveArtifacts = async (
   database: DatabaseService,
   input: {
@@ -349,8 +381,98 @@ const getEndpointArtifactForVersion = async (
       ),
   });
 
+const getSeedArtifactsForApp = async (
+  database: DatabaseService,
+  appId: string,
+  input?: {
+    readonly excludeVersionId?: string;
+  },
+) => {
+  const latestReadyVersion = await getLatestReadyVersionForApp(
+    database,
+    appId,
+    {
+      excludeVersionId: input?.excludeVersionId,
+    },
+  );
+
+  if (!latestReadyVersion) {
+    return null;
+  }
+
+  const pageArtifact = await getPageArtifactForVersion(
+    database,
+    latestReadyVersion.id,
+  );
+
+  if (!pageArtifact) {
+    return null;
+  }
+
+  const page = JSON.parse(pageArtifact.content) as GeneratedPageBundle;
+  const endpointArtifact = await getEndpointArtifactForVersion(database, {
+    appVersionId: latestReadyVersion.id,
+    endpointSlug: page.endpointSlug,
+  });
+
+  if (!endpointArtifact) {
+    return null;
+  }
+
+  return {
+    endpoint: {
+      code: endpointArtifact.content,
+      slug: page.endpointSlug,
+    },
+    page,
+    version: latestReadyVersion,
+  };
+};
+
+const syncArtifactsToBox = async (input: {
+  readonly box: Box;
+  readonly endpoint: {
+    readonly code: string;
+    readonly slug: string;
+  };
+  readonly page: GeneratedPageBundle;
+  readonly prompt: string;
+  readonly revision: number;
+}) => {
+  await input.box.files.write({
+    content: input.page.html,
+    path: "generated-app/page.html",
+  });
+  await input.box.files.write({
+    content: input.page.css,
+    path: "generated-app/page.css",
+  });
+  await input.box.files.write({
+    content: input.page.js,
+    path: "generated-app/page.js",
+  });
+  await input.box.files.write({
+    content: input.endpoint.code,
+    path: "generated-app/endpoint.js",
+  });
+  await input.box.files.write({
+    content: JSON.stringify(
+      {
+        endpointSlug: input.endpoint.slug,
+        prompt: input.prompt,
+        revision: input.revision,
+        title: input.page.title,
+      },
+      null,
+      2,
+    ),
+    path: "generated-app/current.json",
+  });
+};
+
 const buildPrompt = async (input: {
   readonly appSlug: string;
+  readonly hasExistingImplementation: boolean;
   readonly prompt: string;
 }) => {
   const [catalog, latestOverview] = await Promise.all([
@@ -367,6 +489,23 @@ const buildPrompt = async (input: {
       }
     : latestOverview;
 
+  const continuityInstructions = input.hasExistingImplementation
+    ? `
+This app already has an implementation in the current durable Box workspace.
+
+Continue from the existing files in /workspace/home/generated-app:
+- page.html
+- page.css
+- page.js
+- endpoint.js
+- current.json
+
+Treat the user's request as an edit to the current implementation. Preserve and improve the existing direction instead of starting from scratch unless the request clearly asks for a major reset.
+`.trim()
+    : `
+This is the first implementation for this app. After you generate the result, the system will save it into /workspace/home/generated-app for future edits.
+`.trim();
+
   return `
 You are generating a production-ready, read-only custom page for a SvelteKit dashboard.
 
@@ -375,6 +514,8 @@ ${input.prompt}
 
 App slug:
 ${input.appSlug}
+
+${continuityInstructions}
 
 Return JSON only. No markdown fences. No explanations.
 
@@ -424,7 +565,68 @@ Make the endpoint shape exactly what the page needs.
 `.trim();
 };
 
+const createBoxForApp = async (input: {
+  readonly app: GeneratedAppRecord;
+  readonly database: DatabaseService;
+  readonly openAiApiKey: string;
+  readonly upstashBoxApiKey: string;
+}) => {
+  const box = await Box.create({
+    agent: {
+      apiKey: input.openAiApiKey,
+      model: "openai/gpt-5.4-mini",
+      provider: "codex",
+    },
+    apiKey: input.upstashBoxApiKey,
+    name: `generated-${input.app.slug}`,
+    runtime: "node",
+  });
+
+  await updateApp(input.database, {
+    appId: input.app.id,
+    boxId: box.id,
+  });
+
+  return box;
+};
+
+const getOrCreatePersistentBox = async (input: {
+  readonly app: GeneratedAppRecord;
+  readonly database: DatabaseService;
+  readonly openAiApiKey: string;
+  readonly upstashBoxApiKey: string;
+}) => {
+  if (!input.app.boxId) {
+    return {
+      box: await createBoxForApp(input),
+      mode: "created" as const,
+    };
+  }
+
+  try {
+    const box = await Box.get(input.app.boxId, {
+      apiKey: input.upstashBoxApiKey,
+    });
+    const status = await box.getStatus();
+
+    if (status.status === "paused") {
+      await box.resume();
+    }
+
+    return {
+      box,
+      mode: "reused" as const,
+    };
+  } catch {
+    return {
+      box: await createBoxForApp(input),
+      mode: "recreated" as const,
+    };
+  }
+};
+
 const persistGeneratedVersion = async (input: {
+  readonly box: Box;
   readonly endpoint: {
     readonly code: string;
     readonly slug: string;
@@ -455,6 +657,20 @@ const persistGeneratedVersion = async (input: {
             },
           });
 
+          await syncArtifactsToBox({
+            box: input.box,
+            endpoint: input.endpoint,
+            page: {
+              css: input.page.css,
+              endpointSlug: input.endpoint.slug,
+              html: input.page.html,
+              js: input.page.js,
+              title: input.title,
+            },
+            prompt: input.version.prompt,
+            revision: input.version.versionNumber,
+          });
+
           await updateVersion(database, {
             appVersionId: input.version.id,
             errorMessage: null,
@@ -462,13 +678,10 @@ const persistGeneratedVersion = async (input: {
             title: input.title,
           });
 
-          await database.db
-            .update(schema.generatedApps)
-            .set({
-              title: input.title,
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.generatedApps.id, input.version.appId));
+          await updateApp(database, {
+            appId: input.version.appId,
+            title: input.title,
+          });
 
           await appendEvent(database, {
             appVersionId: input.version.id,
@@ -592,51 +805,78 @@ const runGenerationForVersion = async (versionId: string) => {
       }),
     );
 
+    const database = await resolveDatabase();
+    const previousArtifacts = await getSeedArtifactsForApp(database, app.id, {
+      excludeVersionId: version.id,
+    });
+    const persistentBox = await getOrCreatePersistentBox({
+      app,
+      database,
+      openAiApiKey,
+      upstashBoxApiKey,
+    });
+    box = persistentBox.box;
+
+    await appendEvent(database, {
+      appVersionId: version.id,
+      eventType:
+        persistentBox.mode === "reused"
+          ? "box-reused"
+          : persistentBox.mode === "recreated"
+            ? "box-recreated"
+            : "box-created",
+      message:
+        persistentBox.mode === "reused"
+          ? "Reusing the existing sandbox"
+          : persistentBox.mode === "recreated"
+            ? "Recreated the sandbox and restored the latest revision"
+            : "Created a sandbox for this generated app",
+      metadata: {
+        boxId: box.id,
+      },
+    });
+
+    if (persistentBox.mode !== "reused" && previousArtifacts) {
+      await syncArtifactsToBox({
+        box,
+        endpoint: previousArtifacts.endpoint,
+        page: previousArtifacts.page,
+        prompt: previousArtifacts.version.prompt,
+        revision: previousArtifacts.version.versionNumber,
+      });
+
+      await appendEvent(database, {
+        appVersionId: version.id,
+        eventType: "box-seeded",
+        message: "Seeded the sandbox with the latest ready revision",
+      });
+    }
+
     const prompt = await buildPrompt({
       appSlug: app.slug,
+      hasExistingImplementation: previousArtifacts !== null,
       prompt: version.prompt,
     });
 
-    box = await Box.create({
-      agent: {
-        apiKey: openAiApiKey,
-        model: "openai/gpt-5.4-mini",
-        provider: "codex",
+    await appendEvent(database, {
+      appVersionId: version.id,
+      eventType: "box-ready",
+      message: "Sandbox is ready and generating artifacts",
+      metadata: {
+        boxId: box.id,
       },
-      apiKey: upstashBoxApiKey,
-      runtime: "node",
     });
-
-    await runGeneratedAppsEffect(
-      Effect.gen(function* () {
-        const database = yield* Database;
-
-        yield* Effect.tryPromise({
-          try: () =>
-            appendEvent(database, {
-              appVersionId: version.id,
-              eventType: "box-ready",
-              message: "Box is ready and generating artifacts",
-            }),
-          catch: (cause) =>
-            new GeneratedAppsError({
-              message: `Failed to record box startup for version "${version.id}".`,
-              cause,
-            }),
-        });
-      }),
-    );
 
     const run = await box.agent.run({
       maxRetries: 1,
       onToolUse: (tool) => {
         void runGeneratedAppsEffect(
           Effect.gen(function* () {
-            const database = yield* Database;
+            const activeDatabase = yield* Database;
 
             yield* Effect.tryPromise({
               try: () =>
-                appendEvent(database, {
+                appendEvent(activeDatabase, {
                   appVersionId: version.id,
                   eventType: `tool:${tool.name}`,
                   message: `Box used ${tool.name}`,
@@ -665,6 +905,7 @@ const runGenerationForVersion = async (versionId: string) => {
     }
 
     await persistGeneratedVersion({
+      box,
       endpoint: run.result.endpoint,
       page: run.result.page,
       title: run.result.title,
@@ -684,7 +925,7 @@ const runGenerationForVersion = async (versionId: string) => {
     });
   } finally {
     if (box) {
-      await box.delete().catch(() => undefined);
+      await box.pause().catch(() => undefined);
     }
   }
 };
@@ -775,10 +1016,7 @@ export const createGeneratedAppEditRun = (input: {
             throw error(404, "Generated app not found.");
           }
 
-          const latestVersion = await getLatestVersionForSlug(
-            database,
-            input.slug,
-          );
+          const latestVersion = await getLatestVersionForApp(database, app.id);
           const nextVersionNumber = (latestVersion?.versionNumber ?? 0) + 1;
           const initialTitle = getInitialTitle(trimmedPrompt);
 

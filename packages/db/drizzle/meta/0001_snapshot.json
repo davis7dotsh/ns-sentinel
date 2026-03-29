@@ -155,16 +155,12 @@
         "channels_yt_channel_id_unique": {
           "name": "channels_yt_channel_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "yt_channel_id"
-          ]
+          "columns": ["yt_channel_id"]
         },
         "channels_x_user_id_unique": {
           "name": "channels_x_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "x_user_id"
-          ]
+          "columns": ["x_user_id"]
         }
       },
       "policies": {},
@@ -270,12 +266,8 @@
           "name": "generated_app_versions_app_id_generated_apps_id_fk",
           "tableFrom": "generated_app_versions",
           "tableTo": "generated_apps",
-          "columnsFrom": [
-            "app_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["app_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -347,9 +339,7 @@
         "generated_apps_slug_unique": {
           "name": "generated_apps_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -455,12 +445,8 @@
           "name": "generated_artifacts_app_version_id_generated_app_versions_id_fk",
           "tableFrom": "generated_artifacts",
           "tableTo": "generated_app_versions",
-          "columnsFrom": [
-            "app_version_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["app_version_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -551,12 +537,8 @@
           "name": "generated_events_app_version_id_generated_app_versions_id_fk",
           "tableFrom": "generated_events",
           "tableTo": "generated_app_versions",
-          "columnsFrom": [
-            "app_version_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["app_version_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -703,12 +685,8 @@
           "name": "sync_runs_channel_id_channels_id_fk",
           "tableFrom": "sync_runs",
           "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["channel_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -801,12 +779,8 @@
           "name": "x_post_metrics_snapshots_post_id_x_posts_id_fk",
           "tableFrom": "x_post_metrics_snapshots",
           "tableTo": "x_posts",
-          "columnsFrom": [
-            "post_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["post_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -814,10 +788,7 @@
       "compositePrimaryKeys": {
         "x_post_metrics_snapshots_post_id_captured_at_pk": {
           "name": "x_post_metrics_snapshots_post_id_captured_at_pk",
-          "columns": [
-            "post_id",
-            "captured_at"
-          ]
+          "columns": ["post_id", "captured_at"]
         }
       },
       "uniqueConstraints": {},
@@ -986,12 +957,8 @@
           "name": "x_posts_channel_id_channels_id_fk",
           "tableFrom": "x_posts",
           "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["channel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1001,9 +968,7 @@
         "x_posts_x_post_id_unique": {
           "name": "x_posts_x_post_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "x_post_id"
-          ]
+          "columns": ["x_post_id"]
         }
       },
       "policies": {},
@@ -1153,12 +1118,8 @@
           "name": "yt_comments_video_id_yt_videos_id_fk",
           "tableFrom": "yt_comments",
           "tableTo": "yt_videos",
-          "columnsFrom": [
-            "video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["video_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1168,9 +1129,7 @@
         "yt_comments_yt_comment_id_unique": {
           "name": "yt_comments_yt_comment_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "yt_comment_id"
-          ]
+          "columns": ["yt_comment_id"]
         }
       },
       "policies": {},
@@ -1241,12 +1200,8 @@
           "name": "yt_video_metrics_snapshots_video_id_yt_videos_id_fk",
           "tableFrom": "yt_video_metrics_snapshots",
           "tableTo": "yt_videos",
-          "columnsFrom": [
-            "video_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["video_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1254,10 +1209,7 @@
       "compositePrimaryKeys": {
         "yt_video_metrics_snapshots_video_id_captured_at_pk": {
           "name": "yt_video_metrics_snapshots_video_id_captured_at_pk",
-          "columns": [
-            "video_id",
-            "captured_at"
-          ]
+          "columns": ["video_id", "captured_at"]
         }
       },
       "uniqueConstraints": {},
@@ -1415,12 +1367,8 @@
           "name": "yt_videos_channel_id_channels_id_fk",
           "tableFrom": "yt_videos",
           "tableTo": "channels",
-          "columnsFrom": [
-            "channel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["channel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1430,9 +1378,7 @@
         "yt_videos_yt_video_id_unique": {
           "name": "yt_videos_yt_video_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "yt_video_id"
-          ]
+          "columns": ["yt_video_id"]
         }
       },
       "policies": {},

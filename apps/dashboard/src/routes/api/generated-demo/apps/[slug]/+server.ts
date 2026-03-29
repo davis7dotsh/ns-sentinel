@@ -1,3 +1,4 @@
+import { error } from "@sveltejs/kit";
 import {
   copyGeneratedApiHeaders,
   fetchGeneratedApi,
@@ -5,10 +6,14 @@ import {
 
 export const GET = async ({ params, url }) => {
   const response = await fetchGeneratedApi(
-    `/sandbox/${params.slug}`,
+    `/api/generated-demo/apps/${params.slug}`,
     undefined,
     url.searchParams,
   );
+
+  if (!response.ok) {
+    throw error(response.status, await response.text());
+  }
 
   return new Response(response.body, {
     headers: copyGeneratedApiHeaders(response.headers),

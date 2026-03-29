@@ -15,6 +15,13 @@
       "when": 1774685924742,
       "tag": "0001_furry_christian_walker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779990000000,
+      "tag": "0002_calm_box_identity",
+      "breakpoints": true
     }
   ]
 }

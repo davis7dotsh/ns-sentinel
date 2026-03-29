@@ -32,9 +32,9 @@
 {#if !isGeneratedRoute && !isCreateRoute}
   <a
     aria-label="Create generated page"
-    class="fixed bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-stone-950 text-3xl leading-none text-stone-50 shadow-[0_18px_40px_rgba(28,25,23,0.28)] transition hover:bg-stone-800"
+    class="fixed bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-stone-950 text-3xl leading-none text-white no-underline shadow-[0_18px_40px_rgba(28,25,23,0.28)] transition hover:bg-stone-800"
     href="/create"
   >
-    +
+    <span class="font-medium text-white">+</span>
   </a>
 {/if}
