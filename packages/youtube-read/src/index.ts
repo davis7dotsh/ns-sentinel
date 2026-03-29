@@ -108,6 +108,28 @@ export type ReadYoutubeVideoOptions = {
   readonly commentsPerVideo?: number;
 };
 
+const parseChannelLookupQuery = (query: string | undefined) => {
+  if (!query) {
+    return undefined;
+  }
+
+  const trimmed = query.trim();
+  const channelIdMatch =
+    /youtube\.com\/channel\/([A-Za-z0-9_-]+)/iu.exec(trimmed) ??
+    /^(UC[A-Za-z0-9_-]{20,})$/u.exec(trimmed);
+  const handleMatch =
+    /youtube\.com\/@([A-Za-z0-9._-]+)/iu.exec(trimmed) ??
+    /^@([A-Za-z0-9._-]+)$/u.exec(trimmed);
+  const usernameMatch = /youtube\.com\/user\/([A-Za-z0-9._-]+)/iu.exec(trimmed);
+
+  return {
+    channelId: channelIdMatch?.[1],
+    handle: handleMatch?.[1],
+    query: trimmed,
+    username: usernameMatch?.[1],
+  };
+};
+
 const chunk = <A>(items: readonly A[], size: number) => {
   const chunks: A[][] = [];
 
@@ -372,37 +394,79 @@ const fetchChannelFromApi = (
   },
 ) =>
   Effect.gen(function* () {
-    const channelId =
-      input.channelId ??
-      (yield* retryYoutubeCall("search.list", () =>
-        youtube.search
-          .list({
-            q: input.query,
-            type: ["channel"],
+    const parsedQuery = parseChannelLookupQuery(input.query);
+    const resolvedChannelId = input.channelId ?? parsedQuery?.channelId;
+
+    const response = resolvedChannelId
+      ? yield* retryYoutubeCall("channels.list", () =>
+          youtube.channels.list({
+            id: [resolvedChannelId],
+            part: [
+              "snippet",
+              "statistics",
+              "contentDetails",
+              "brandingSettings",
+            ],
             maxResults: 1,
-            part: ["snippet"],
-          })
-          .then((response) => {
-            const resolvedChannelId = response.data.items?.[0]?.id?.channelId;
-
-            if (!resolvedChannelId) {
-              throw createYoutubeError(
-                "search.list",
-                `No public YouTube channel was found for query "${input.query ?? ""}".`,
-              );
-            }
-
-            return resolvedChannelId;
           }),
-      ));
+        )
+      : parsedQuery?.handle
+        ? yield* retryYoutubeCall("channels.list", () =>
+            youtube.channels.list({
+              forHandle: parsedQuery.handle,
+              part: [
+                "snippet",
+                "statistics",
+                "contentDetails",
+                "brandingSettings",
+              ],
+              maxResults: 1,
+            }),
+          )
+        : parsedQuery?.username
+          ? yield* retryYoutubeCall("channels.list", () =>
+              youtube.channels.list({
+                forUsername: parsedQuery.username,
+                part: [
+                  "snippet",
+                  "statistics",
+                  "contentDetails",
+                  "brandingSettings",
+                ],
+                maxResults: 1,
+              }),
+            )
+          : yield* retryYoutubeCall("search.list", () =>
+              youtube.search
+                .list({
+                  q: input.query,
+                  type: ["channel"],
+                  maxResults: 1,
+                  part: ["snippet"],
+                })
+                .then((searchResponse) => {
+                  const searchedChannelId =
+                    searchResponse.data.items?.[0]?.id?.channelId;
 
-    const response = yield* retryYoutubeCall("channels.list", () =>
-      youtube.channels.list({
-        id: [channelId],
-        part: ["snippet", "statistics", "contentDetails", "brandingSettings"],
-        maxResults: 1,
-      }),
-    );
+                  if (!searchedChannelId) {
+                    throw createYoutubeError(
+                      "search.list",
+                      `No public YouTube channel was found for query "${input.query ?? ""}".`,
+                    );
+                  }
+
+                  return youtube.channels.list({
+                    id: [searchedChannelId],
+                    part: [
+                      "snippet",
+                      "statistics",
+                      "contentDetails",
+                      "brandingSettings",
+                    ],
+                    maxResults: 1,
+                  });
+                }),
+            );
 
     const channel = response.data.items?.[0];
     const normalized = channel ? normalizeChannel(channel) : undefined;
@@ -411,7 +475,7 @@ const fetchChannelFromApi = (
       return yield* Effect.fail(
         createYoutubeError(
           "channels.list",
-          `No YouTube channel was returned for channel ID "${channelId}".`,
+          `No YouTube channel was returned for lookup "${input.channelId ?? input.query ?? ""}".`,
         ),
       );
     }

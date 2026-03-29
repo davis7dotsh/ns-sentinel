@@ -61,12 +61,16 @@ const parseDateValue = (value: string | undefined) =>
 
 const parseYoutubeChannelInput = (input: string) => {
   const trimmed = input.trim();
+  const channelIdMatch =
+    /youtube\.com\/channel\/([A-Za-z0-9_-]+)/iu.exec(trimmed) ??
+    /^(UC[A-Za-z0-9_-]{20,})$/u.exec(trimmed);
   const handleMatch =
     /youtube\.com\/@([A-Za-z0-9._-]+)/iu.exec(trimmed) ??
-    /^@?([A-Za-z0-9._-]+)$/u.exec(trimmed);
+    /^@([A-Za-z0-9._-]+)$/u.exec(trimmed);
 
   return {
     original: trimmed,
+    channelId: channelIdMatch?.[1],
     handle: handleMatch?.[1],
   };
 };
@@ -476,9 +480,13 @@ export const seedYoutubeChannel = (input: string) =>
     const database = yield* Database;
     const youtube = yield* YoutubeReader;
     const parsed = parseYoutubeChannelInput(input);
-    const lookupQuery = parsed.handle ? `@${parsed.handle}` : parsed.original;
     const channel = yield* youtube.readChannel({
-      query: lookupQuery,
+      channelId: parsed.channelId,
+      query: parsed.channelId
+        ? undefined
+        : parsed.handle
+          ? `@${parsed.handle}`
+          : parsed.original,
     });
     const channelRowId = yield* Effect.tryPromise({
       try: () => upsertYoutubeChannel(database.db, channel),
