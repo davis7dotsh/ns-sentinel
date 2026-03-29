@@ -18,12 +18,17 @@ export default defineSchema({
   }).index("by_slug", ["slug"]),
 
   pageVersions: defineTable({
+    baseVersionId: v.optional(v.id("pageVersions")),
     createdAt: v.number(),
     cssBlobId: v.optional(v.id("_storage")),
+    cssPreview: v.optional(v.string()),
     endpointBlobId: v.optional(v.id("_storage")),
+    endpointPreview: v.optional(v.string()),
     errorMessage: v.optional(v.string()),
     htmlBlobId: v.optional(v.id("_storage")),
+    htmlPreview: v.optional(v.string()),
     jsBlobId: v.optional(v.id("_storage")),
+    jsPreview: v.optional(v.string()),
     pageId: v.id("pages"),
     prompt: v.string(),
     status: generationStatus,

@@ -1,27 +1,32 @@
+import { env } from "$env/dynamic/private";
 import { error } from "@sveltejs/kit";
-import { fetchGeneratedApi } from "$lib/server/generated-api";
+import { createConvexPublicServerClient } from "@ns-sentinel/convex";
+import { api } from "@ns-sentinel/convex/api";
+import type { Id } from "@ns-sentinel/convex/data-model";
 
 export const load = async ({ params, url }) => {
-  const response = await fetchGeneratedApi(
-    `/api/generated-demo/apps/${params.slug}`,
-    undefined,
-    url.searchParams,
-  );
+  const convexUrl = env.CONVEX_URL?.trim();
 
-  if (!response.ok) {
-    throw error(404, "Generated page not found.");
+  if (!convexUrl) {
+    throw new Error("Missing CONVEX_URL.");
   }
 
-  const snapshot = (await response.json()) as {
-    readonly slug: string;
-  };
+  const selectedVersionId = url.searchParams.get("version");
+  const convex = createConvexPublicServerClient(convexUrl);
+  const initialPageView = await convex.query(api.pages.getPageView, {
+    slug: params.slug,
+    versionId: selectedVersionId
+      ? (selectedVersionId as Id<"pageVersions">)
+      : undefined,
+  });
 
-  if (snapshot.slug !== params.slug) {
+  if (!initialPageView) {
     throw error(404, "Generated page not found.");
   }
 
   return {
-    snapshot,
+    initialPageView,
+    selectedVersionId,
     slug: params.slug,
   };
 };

@@ -1,2 +1,6 @@
-export { createConvexServerClient, ConvexServerError } from "./server";
-export { getRequiredConvexPrivateBridgeKey } from "./private-auth";
+export {
+  createConvexPublicServerClient,
+  createConvexServerClient,
+  ConvexServerError,
+} from "./server";
+export { getRequiredConvexPrivateApiKey } from "./private-auth";

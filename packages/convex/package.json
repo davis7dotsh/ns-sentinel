@@ -4,6 +4,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./api": "./src/api.ts",
+    "./data-model": "./src/data-model.ts",
     "./server": "./src/server.ts",
     "./private-auth": "./src/private-auth.ts",
     "./schema": "./convex/schema.ts",

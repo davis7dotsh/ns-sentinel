@@ -3,10 +3,31 @@ import {
   fetchGeneratedApi,
 } from "$lib/server/generated-api";
 
-export const GET = async ({ params, url }) => {
+const handleRequest = async ({
+  params,
+  request,
+  url,
+}: {
+  params: {
+    endpointSlug: string;
+    slug: string;
+  };
+  request: Request;
+  url: URL;
+}) => {
   const response = await fetchGeneratedApi(
     `/sandbox-api/${params.slug}/${params.endpointSlug}`,
-    undefined,
+    {
+      body:
+        request.method === "GET" || request.method === "HEAD"
+          ? undefined
+          : await request.text(),
+      headers: {
+        "Content-Type":
+          request.headers.get("content-type") ?? "application/json",
+      },
+      method: request.method,
+    },
     url.searchParams,
   );
 
@@ -15,3 +36,6 @@ export const GET = async ({ params, url }) => {
     status: response.status,
   });
 };
+
+export const GET = handleRequest;
+export const POST = handleRequest;

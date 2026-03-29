@@ -31,11 +31,11 @@
       }
 
       const snapshot = (await response.json()) as {
-        readonly runId: string;
         readonly slug: string;
+        readonly versionId: string;
       };
 
-      await goto(`/gen/${snapshot.slug}?run=${snapshot.runId}`);
+      await goto(`/gen/${snapshot.slug}?version=${snapshot.versionId}`);
     } catch (cause) {
       errorMessage =
         cause instanceof Error
@@ -63,8 +63,9 @@
         Describe the page you want to exist.
       </h1>
       <p class="max-w-2xl text-sm leading-6 text-stone-600">
-        This launches a real Upstash Box generation run, stores the artifacts in
-        Postgres, and serves the finished page back through the dashboard shell.
+        This creates a Convex-backed page record, kicks off a Trigger workflow,
+        and streams the final iframe version back into the dashboard once the
+        generated artifacts are ready.
       </p>
     </div>
 

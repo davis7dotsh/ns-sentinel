@@ -8,7 +8,7 @@ export const getGeneratedApiOrigin = () => {
 
   if (!value) {
     throw new Error(
-      "Missing GENERATED_API_ORIGIN. Point it at the new apps/api origin.",
+      "Missing GENERATED_API_ORIGIN. Point it at the runtime app origin.",
     );
   }
 
@@ -67,5 +67,5 @@ export const fetchGeneratedApi = async (
   }
 
   console.error(lastCause);
-  throw error(502, "Failed to reach the generated API service.");
+  throw error(502, "Failed to reach the generated runtime service.");
 };

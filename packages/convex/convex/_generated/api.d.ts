@@ -8,13 +8,19 @@
  * @module
  */
 
+import type * as pages from "../pages.js";
+import type * as private_helpers from "../private/helpers.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  pages: typeof pages;
+  "private/helpers": typeof private_helpers;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.

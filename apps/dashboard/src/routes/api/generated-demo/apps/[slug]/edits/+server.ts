@@ -1,23 +1,22 @@
-import {
-  copyGeneratedApiHeaders,
-  fetchGeneratedApi,
-} from "$lib/server/generated-api";
+import { error, json } from "@sveltejs/kit";
+import type { Id } from "@ns-sentinel/convex/data-model";
+import { createGeneratedPageEdit } from "$lib/server/generated-pages";
 
 export const POST = async ({ params, request }) => {
-  const response = await fetchGeneratedApi(
-    `/api/generated-demo/apps/${params.slug}/edits`,
-    {
-      body: await request.text(),
-      headers: {
-        "Content-Type":
-          request.headers.get("content-type") ?? "application/json",
-      },
-      method: "POST",
-    },
-  );
+  const body = (await request.json()) as {
+    baseVersionId?: string;
+    prompt?: string;
+  };
 
-  return new Response(response.body, {
-    headers: copyGeneratedApiHeaders(response.headers),
-    status: response.status,
+  if (!body.baseVersionId) {
+    throw error(400, "Missing baseVersionId.");
+  }
+
+  const created = await createGeneratedPageEdit({
+    baseVersionId: body.baseVersionId as Id<"pageVersions">,
+    prompt: body.prompt ?? "",
+    slug: params.slug,
   });
+
+  return json(created, { status: 201 });
 };
