@@ -4,6 +4,54 @@
   import { formatCount, formatDate } from "$lib/format";
 
   const channels = getChannels();
+
+  let isTriggerRunning = $state(false);
+  let triggerRunId = $state<string | null>(null);
+  let triggerError = $state<string | null>(null);
+
+  const isHelloWorldTriggerSuccess = (
+    value: unknown,
+  ): value is { ok: true; runId: string } =>
+    typeof value === "object" &&
+    value !== null &&
+    "ok" in value &&
+    value.ok === true &&
+    "runId" in value &&
+    typeof value.runId === "string";
+
+  const runHelloWorldTrigger = async () => {
+    isTriggerRunning = true;
+    triggerRunId = null;
+    triggerError = null;
+
+    try {
+      const response = await fetch("/api/trigger/hello-world", {
+        method: "POST",
+      });
+      const data: unknown = await response.json();
+
+      if (!response.ok || !isHelloWorldTriggerSuccess(data)) {
+        const message =
+          typeof data === "object" &&
+          data !== null &&
+          "message" in data &&
+          typeof data.message === "string"
+            ? data.message
+            : "Failed to start the Trigger task.";
+
+        throw new Error(message);
+      }
+
+      triggerRunId = data.runId;
+    } catch (cause) {
+      triggerError =
+        cause instanceof Error
+          ? cause.message
+          : "Failed to start the Trigger task.";
+    } finally {
+      isTriggerRunning = false;
+    }
+  };
 </script>
 
 <svelte:head>
@@ -11,13 +59,48 @@
 </svelte:head>
 
 <section class="space-y-8">
-  <div class="max-w-2xl space-y-3">
-    <p class="text-xs uppercase tracking-[0.28em] text-stone-500">Channels</p>
-    <h1
-      class="text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl"
+  <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+    <div class="max-w-2xl space-y-3">
+      <p class="text-xs uppercase tracking-[0.28em] text-stone-500">Channels</p>
+      <h1
+        class="text-3xl font-semibold tracking-tight text-stone-950 sm:text-4xl"
+      >
+        Youtube channels in the crawl queue.
+      </h1>
+    </div>
+
+    <div
+      class="max-w-sm space-y-2 rounded-2xl border border-stone-300/80 bg-white/70 p-4 shadow-[0_12px_30px_rgba(28,25,23,0.06)] backdrop-blur"
     >
-      Youtube channels in the crawl queue.
-    </h1>
+      <div class="space-y-1">
+        <p class="text-xs uppercase tracking-[0.24em] text-stone-500">
+          Trigger.dev
+        </p>
+        <p class="text-sm text-stone-700">
+          Fire the sample <span class="font-medium text-stone-950"
+            >hello-world</span
+          >
+          task from the dashboard.
+        </p>
+      </div>
+
+      <button
+        class="inline-flex items-center justify-center rounded-full bg-stone-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-stone-800 disabled:cursor-not-allowed disabled:bg-stone-400"
+        disabled={isTriggerRunning}
+        onclick={runHelloWorldTrigger}
+        type="button"
+      >
+        {isTriggerRunning ? "Running..." : "Run Hello World"}
+      </button>
+
+      {#if triggerRunId}
+        <p class="text-sm text-emerald-700">Started run `{triggerRunId}`.</p>
+      {/if}
+
+      {#if triggerError}
+        <p class="text-sm text-red-700">{triggerError}</p>
+      {/if}
+    </div>
   </div>
 
   {#if channels.ready}

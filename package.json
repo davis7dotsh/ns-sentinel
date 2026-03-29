@@ -25,11 +25,15 @@
     "test:x": "bun run --cwd packages/x-read start"
   },
   "devDependencies": {
+    "@trigger.dev/build": "4.4.3",
     "@types/node": "^25.5.0",
     "drizzle-kit": "^0.31.10",
     "prettier": "^3.8.1",
     "prettier-plugin-svelte": "^3.5.1",
     "turbo": "^2.8.16",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@trigger.dev/sdk": "4.4.3"
   }
 }

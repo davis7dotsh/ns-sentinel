@@ -10,6 +10,7 @@ import {
 import * as schema from "./schema";
 
 export { schema };
+export { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
 
 export const defaultDatabaseUrl =
   "postgres://postgres:postgres@localhost:5432/ns_sentinel_dev";
