@@ -17,6 +17,40 @@ const getConvexClient = () => {
   return createConvexServerClient(convexUrl);
 };
 
+const normalizeVersionInput = (
+  versionId: string | null | undefined,
+  searchParams: URLSearchParams,
+) => {
+  if (!versionId) {
+    return {
+      searchParams,
+      versionId: undefined,
+    };
+  }
+
+  const [cleanVersionId, appendedQuery] = versionId.split("?", 2);
+
+  if (!appendedQuery) {
+    return {
+      searchParams,
+      versionId: cleanVersionId as Id<"pageVersions">,
+    };
+  }
+
+  const mergedSearchParams = new URLSearchParams(searchParams);
+
+  for (const [key, value] of new URLSearchParams(appendedQuery)) {
+    if (!mergedSearchParams.has(key)) {
+      mergedSearchParams.set(key, value);
+    }
+  }
+
+  return {
+    searchParams: mergedSearchParams,
+    versionId: cleanVersionId as Id<"pageVersions">,
+  };
+};
+
 const readText = async (url: string | null) => {
   if (!url) {
     return null;
@@ -45,12 +79,14 @@ export const getGeneratedPageBundle = async (input: {
 }) => {
   // TODO: This currently runs same-origin with the dashboard in dev.
   // Split this runtime onto a dedicated origin before hardening production sandboxing.
+  const normalized = normalizeVersionInput(
+    input.versionId,
+    new URLSearchParams(),
+  );
   const convex = getConvexClient();
   const payload = await convex.query(api.pages.getRuntimePage, {
     slug: input.slug,
-    versionId: input.versionId
-      ? (input.versionId as Id<"pageVersions">)
-      : undefined,
+    versionId: normalized.versionId,
   });
 
   if (!payload || payload.version.status !== "ready") {
@@ -92,12 +128,11 @@ export const runGeneratedEndpoint = async (input: {
     return null;
   }
 
+  const normalized = normalizeVersionInput(input.versionId, input.searchParams);
   const convex = getConvexClient();
   const payload = await convex.query(api.pages.getRuntimePage, {
     slug: input.slug,
-    versionId: input.versionId
-      ? (input.versionId as Id<"pageVersions">)
-      : undefined,
+    versionId: normalized.versionId,
   });
 
   if (!payload || payload.version.status !== "ready") {
@@ -130,6 +165,6 @@ export const runGeneratedEndpoint = async (input: {
 
   return execute({
     fetchJson,
-    searchParams: input.searchParams,
+    searchParams: normalized.searchParams,
   });
 };

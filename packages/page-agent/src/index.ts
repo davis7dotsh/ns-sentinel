@@ -38,6 +38,7 @@ Rules:
   - prefer a light theme that feels native to a calm editorial dashboard
 - Do not include <html>, <head>, <body>, <style>, or <script> tags in html.
 - The js must fetch from window.__GENERATED_APP__.endpointUrl using GET by default.
+- If the js needs extra query params, construct a URL with new URL(window.__GENERATED_APP__.endpointUrl, window.location.origin) and mutate url.searchParams; never concatenate ?foo=bar onto the endpoint URL as a string.
 - The js must render/update the DOM defined by html.
 - No external scripts, fonts, eval, Function, dynamic import, or off-origin network calls.
 - The endpoint must return JSON-serializable data only.
