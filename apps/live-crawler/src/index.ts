@@ -1,9 +1,7 @@
+import "@ns-sentinel/core/register-env";
 import { Effect, Layer } from "effect";
 import { isDirectExecution, runNodeMain } from "@ns-sentinel/core";
-import {
-  listYoutubeChannels,
-  syncLatestYoutubeVideos,
-} from "@ns-sentinel/crawl-helpers";
+import { listYoutubeChannels, syncLatestYoutubeVideos } from "@ns-sentinel/crawl-helpers";
 import { layer as databaseLayer } from "@ns-sentinel/db";
 import { layer as youtubeLayer } from "@ns-sentinel/youtube-read";
 
@@ -25,18 +23,9 @@ const parseNumberEnv = (value: string | undefined, fallback: number) => {
 
 const loadConfig = (): LiveCrawlerConfig => {
   return {
-    latestVideoLimit: parseNumberEnv(
-      process.env.YOUTUBE_LIVE_CRAWLER_VIDEO_LIMIT,
-      20,
-    ),
-    commentsPerVideo: parseNumberEnv(
-      process.env.YOUTUBE_LIVE_CRAWLER_COMMENTS_PER_VIDEO,
-      200,
-    ),
-    pollIntervalMs: parseNumberEnv(
-      process.env.YOUTUBE_LIVE_CRAWLER_POLL_INTERVAL_MS,
-      900000,
-    ),
+    latestVideoLimit: parseNumberEnv(process.env.YOUTUBE_LIVE_CRAWLER_VIDEO_LIMIT, 20),
+    commentsPerVideo: parseNumberEnv(process.env.YOUTUBE_LIVE_CRAWLER_COMMENTS_PER_VIDEO, 200),
+    pollIntervalMs: parseNumberEnv(process.env.YOUTUBE_LIVE_CRAWLER_POLL_INTERVAL_MS, 900000),
   };
 };
 

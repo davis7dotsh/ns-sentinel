@@ -1,11 +1,7 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-const generationStatus = v.union(
-  v.literal("working"),
-  v.literal("ready"),
-  v.literal("error"),
-);
+const generationStatus = v.union(v.literal("working"), v.literal("ready"), v.literal("error"));
 
 export default defineSchema({
   pages: defineTable({

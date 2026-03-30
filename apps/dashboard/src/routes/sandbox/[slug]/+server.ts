@@ -1,14 +1,7 @@
-import {
-  copyGeneratedApiHeaders,
-  fetchGeneratedApi,
-} from "$lib/server/generated-api";
+import { copyGeneratedApiHeaders, fetchGeneratedApi } from "$lib/server/generated-api";
 
 export const GET = async ({ params, url }) => {
-  const response = await fetchGeneratedApi(
-    `/sandbox/${params.slug}`,
-    undefined,
-    url.searchParams,
-  );
+  const response = await fetchGeneratedApi(`/sandbox/${params.slug}`, undefined, url.searchParams);
 
   return new Response(response.body, {
     headers: copyGeneratedApiHeaders(response.headers),

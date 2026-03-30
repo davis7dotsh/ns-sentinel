@@ -8,6 +8,4 @@ export const GeneratedPageArtifactsSchema = z.object({
   title: z.string().min(1).max(120),
 });
 
-export type GeneratedPageArtifacts = z.infer<
-  typeof GeneratedPageArtifactsSchema
->;
+export type GeneratedPageArtifacts = z.infer<typeof GeneratedPageArtifactsSchema>;

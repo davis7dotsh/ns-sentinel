@@ -1,10 +1,7 @@
 import { schedules } from "@trigger.dev/sdk";
 import { Effect, Layer } from "effect";
 import { loadWorkspaceEnv, withEnvConfig } from "@ns-sentinel/core";
-import {
-  listYoutubeChannels,
-  syncLatestYoutubeVideos,
-} from "@ns-sentinel/crawl-helpers";
+import { listYoutubeChannels, syncLatestYoutubeVideos } from "@ns-sentinel/crawl-helpers";
 import { layer as databaseLayer } from "@ns-sentinel/db";
 import { layer as youtubeLayer } from "@ns-sentinel/youtube-read";
 
@@ -28,14 +25,8 @@ const parseNumberEnv = (value: string | undefined, fallback: number) => {
 
 const loadConfig = (): LiveCrawlerConfig => {
   return {
-    latestVideoLimit: parseNumberEnv(
-      process.env.YOUTUBE_LIVE_CRAWLER_VIDEO_LIMIT,
-      20,
-    ),
-    commentsPerVideo: parseNumberEnv(
-      process.env.YOUTUBE_LIVE_CRAWLER_COMMENTS_PER_VIDEO,
-      200,
-    ),
+    latestVideoLimit: parseNumberEnv(process.env.YOUTUBE_LIVE_CRAWLER_VIDEO_LIMIT, 20),
+    commentsPerVideo: parseNumberEnv(process.env.YOUTUBE_LIVE_CRAWLER_COMMENTS_PER_VIDEO, 200),
   };
 };
 
@@ -112,9 +103,7 @@ export const syncLatestYoutubeVideosTask = schedules.task({
 
     try {
       const result = await Effect.runPromise(
-        withEnvConfig(
-          runCrawlerPass(config).pipe(Effect.provide(crawlerLayer)),
-        ),
+        withEnvConfig(runCrawlerPass(config).pipe(Effect.provide(crawlerLayer))),
       );
 
       log("Completed live crawler run", {

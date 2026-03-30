@@ -1,16 +1,8 @@
 import { Data, Effect } from "effect";
 import { error } from "@sveltejs/kit";
-import {
-  Database,
-  desc,
-  inArray,
-  layer as databaseLayer,
-  schema,
-} from "@ns-sentinel/db";
+import { Database, desc, inArray, layer as databaseLayer, schema } from "@ns-sentinel/db";
 
-class GeneratedRuntimeDataError extends Data.TaggedError(
-  "GeneratedRuntimeDataError",
-)<{
+class GeneratedRuntimeDataError extends Data.TaggedError("GeneratedRuntimeDataError")<{
   readonly message: string;
   readonly cause?: unknown;
 }> {}
@@ -29,12 +21,10 @@ const getYoutubeChannelUrl = (channel: {
 const runGeneratedRuntimeEffect = async <A>(
   effect: Effect.Effect<A, GeneratedRuntimeDataError, Database>,
 ) =>
-  Effect.runPromise(effect.pipe(Effect.provide(databaseLayer))).catch(
-    (cause) => {
-      console.error(cause);
-      throw error(500, "Failed to load generated runtime data.");
-    },
-  );
+  Effect.runPromise(effect.pipe(Effect.provide(databaseLayer))).catch((cause) => {
+    console.error(cause);
+    throw error(500, "Failed to load generated runtime data.");
+  });
 
 export const getGeneratedChannelsCatalogData = () =>
   runGeneratedRuntimeEffect(
@@ -43,9 +33,7 @@ export const getGeneratedChannelsCatalogData = () =>
       const channels = yield* Effect.tryPromise({
         try: () =>
           database.db.query.channels.findMany({
-            orderBy: (channels, { desc }) => [
-              desc(channels.lastYoutubeSyncedAt),
-            ],
+            orderBy: (channels, { desc }) => [desc(channels.lastYoutubeSyncedAt)],
           }),
         catch: (cause) =>
           new GeneratedRuntimeDataError({
@@ -77,9 +65,7 @@ export const getLatestGeneratedChannelOverviewData = () =>
       const channel = yield* Effect.tryPromise({
         try: () =>
           database.db.query.channels.findFirst({
-            orderBy: (channels, { desc }) => [
-              desc(channels.lastYoutubeSyncedAt),
-            ],
+            orderBy: (channels, { desc }) => [desc(channels.lastYoutubeSyncedAt)],
           }),
         catch: (cause) =>
           new GeneratedRuntimeDataError({
@@ -140,9 +126,7 @@ export const getLatestGeneratedChannelOverviewData = () =>
                     viewCount: schema.ytVideoMetricsSnapshots.viewCount,
                   })
                   .from(schema.ytVideoMetricsSnapshots)
-                  .where(
-                    inArray(schema.ytVideoMetricsSnapshots.videoId, videoIds),
-                  )
+                  .where(inArray(schema.ytVideoMetricsSnapshots.videoId, videoIds))
                   .orderBy(desc(schema.ytVideoMetricsSnapshots.capturedAt)),
               catch: (cause) =>
                 new GeneratedRuntimeDataError({

@@ -25,14 +25,12 @@ const packages = [
   {
     name: "@ns-sentinel/core",
     path: "packages/core/package.json",
-    description:
-      "Shared runtime helpers, env config wiring, and tagged app errors.",
+    description: "Shared runtime helpers, env config wiring, and tagged app errors.",
   },
   {
     name: "@ns-sentinel/db",
     path: "packages/db/package.json",
-    description:
-      "Scoped database layer with typed config and managed shutdown.",
+    description: "Scoped database layer with typed config and managed shutdown.",
   },
   {
     name: "@ns-sentinel/gmail-read",
@@ -62,8 +60,7 @@ const packages = [
   {
     name: "web",
     path: "apps/web/package.json",
-    description:
-      "SvelteKit app now loads project status through Effect on the server.",
+    description: "SvelteKit app now loads project status through Effect on the server.",
   },
 ] as const;
 
@@ -85,8 +82,7 @@ export const load = (async () => {
           name: pkg.name,
           description: pkg.description,
           effectVersion: manifest.dependencies?.effect ?? null,
-          nodePlatformVersion:
-            manifest.dependencies?.["@effect/platform-node"] ?? null,
+          nodePlatformVersion: manifest.dependencies?.["@effect/platform-node"] ?? null,
           checkCommand: manifest.scripts?.check ?? null,
           startCommand: manifest.scripts?.start ?? null,
         };

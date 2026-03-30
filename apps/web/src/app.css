@@ -35,8 +35,7 @@ main {
   border: 1px solid var(--border);
   border-radius: 32px;
   background:
-    linear-gradient(135deg, rgb(255 255 255 / 0.68), rgb(255 250 242 / 0.92)),
-    var(--surface);
+    linear-gradient(135deg, rgb(255 255 255 / 0.68), rgb(255 250 242 / 0.92)), var(--surface);
   box-shadow: 0 22px 60px rgb(60 37 12 / 0.08);
 }
 

@@ -1,24 +1,17 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { Config, Effect, Layer, ServiceMap } from "effect";
-import {
-  createSentinelError,
-  makeNodeRuntime,
-  withEnvConfig,
-} from "@ns-sentinel/core";
+import { createSentinelError, makeNodeRuntime, withEnvConfig } from "@ns-sentinel/core";
 
 import * as schema from "./schema";
 
 export { schema };
 export { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
 
-export const defaultDatabaseUrl =
-  "postgres://postgres:postgres@localhost:5432/ns_sentinel_dev";
+export const defaultDatabaseUrl = "postgres://postgres:postgres@localhost:5432/ns_sentinel_dev";
 
 const DatabaseConfigSource = Config.all({
-  databaseUrl: Config.string("DATABASE_URL").pipe(
-    Config.withDefault(defaultDatabaseUrl),
-  ),
+  databaseUrl: Config.string("DATABASE_URL").pipe(Config.withDefault(defaultDatabaseUrl)),
 });
 
 const createDatabaseHandle = (databaseUrl: string) => {
@@ -50,10 +43,7 @@ export class Database extends ServiceMap.Service<
   {
     readonly client: DatabaseHandle["client"];
     readonly db: DatabaseHandle["db"];
-    readonly ping: () => Effect.Effect<
-      void,
-      ReturnType<typeof createSentinelError>
-    >;
+    readonly ping: () => Effect.Effect<void, ReturnType<typeof createSentinelError>>;
   }
 >()("Database") {
   static readonly layer = Layer.effect(this)(

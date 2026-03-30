@@ -1,9 +1,6 @@
 import { env } from "$env/dynamic/private";
 import { configure, tasks } from "@trigger.dev/sdk";
-import {
-  createConvexPublicServerClient,
-  createConvexServerClient,
-} from "@ns-sentinel/convex";
+import { createConvexPublicServerClient, createConvexServerClient } from "@ns-sentinel/convex";
 import { api } from "@ns-sentinel/convex/api";
 import type { Id } from "@ns-sentinel/convex/data-model";
 
@@ -34,9 +31,7 @@ const configureTriggerClient = () => {
   });
 };
 
-const enqueueGeneration = async (input: {
-  readonly versionId: Id<"pageVersions">;
-}) => {
+const enqueueGeneration = async (input: { readonly versionId: Id<"pageVersions"> }) => {
   configureTriggerClient();
 
   return tasks.trigger(generatedPageTaskId, {
@@ -78,9 +73,7 @@ export const createGeneratedPage = async (prompt: string) => {
     };
   } catch (cause) {
     const message =
-      cause instanceof Error
-        ? cause.message
-        : "Failed to start the generated page workflow.";
+      cause instanceof Error ? cause.message : "Failed to start the generated page workflow.";
 
     await markVersionError({
       message,
@@ -129,9 +122,7 @@ export const createGeneratedPageEdit = async (input: {
     };
   } catch (cause) {
     const message =
-      cause instanceof Error
-        ? cause.message
-        : "Failed to start the generated page workflow.";
+      cause instanceof Error ? cause.message : "Failed to start the generated page workflow.";
 
     await markVersionError({
       message,
@@ -150,9 +141,7 @@ export const deleteGeneratedPage = async (pageId: Id<"pages">) => {
   });
 };
 
-export const retryGeneratedPageVersion = async (
-  versionId: Id<"pageVersions">,
-) => {
+export const retryGeneratedPageVersion = async (versionId: Id<"pageVersions">) => {
   const convex = getConvexClient();
 
   await convex.mutation(api.pages.retryVersion, {
@@ -174,9 +163,7 @@ export const retryGeneratedPageVersion = async (
     };
   } catch (cause) {
     const message =
-      cause instanceof Error
-        ? cause.message
-        : "Failed to retry the generated page workflow.";
+      cause instanceof Error ? cause.message : "Failed to retry the generated page workflow.";
 
     await markVersionError({
       message,

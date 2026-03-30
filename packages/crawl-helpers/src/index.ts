@@ -28,11 +28,7 @@ export type YoutubeChannelSeedResult = {
   readonly title: string;
 };
 
-const createCrawlHelpersError = (
-  operation: string,
-  message: string,
-  cause?: unknown,
-) =>
+const createCrawlHelpersError = (operation: string, message: string, cause?: unknown) =>
   createSentinelError({
     module: crawlHelpersModule,
     operation,
@@ -56,8 +52,7 @@ const parseBigIntValue = (value: string | number | bigint | undefined) => {
   return undefined;
 };
 
-const parseDateValue = (value: string | undefined) =>
-  value ? new Date(value) : undefined;
+const parseDateValue = (value: string | undefined) => (value ? new Date(value) : undefined);
 
 const parseYoutubeChannelInput = (input: string) => {
   const trimmed = input.trim();
@@ -65,8 +60,7 @@ const parseYoutubeChannelInput = (input: string) => {
     /youtube\.com\/channel\/([A-Za-z0-9_-]+)/iu.exec(trimmed) ??
     /^(UC[A-Za-z0-9_-]{20,})$/u.exec(trimmed);
   const handleMatch =
-    /youtube\.com\/@([A-Za-z0-9._-]+)/iu.exec(trimmed) ??
-    /^@([A-Za-z0-9._-]+)$/u.exec(trimmed);
+    /youtube\.com\/@([A-Za-z0-9._-]+)/iu.exec(trimmed) ?? /^@([A-Za-z0-9._-]+)$/u.exec(trimmed);
 
   return {
     original: trimmed,
@@ -85,10 +79,7 @@ const loadYoutubeChannelsFromDatabase = (db: DatabaseClient) =>
     .from(schema.channels)
     .where(isNotNull(schema.channels.ytChannelId));
 
-const findExistingYoutubeVideos = (
-  db: DatabaseClient,
-  ytVideoIds: readonly string[],
-) =>
+const findExistingYoutubeVideos = (db: DatabaseClient, ytVideoIds: readonly string[]) =>
   ytVideoIds.length === 0
     ? Promise.resolve([] as Array<{ id: string; ytVideoId: string }>)
     : db
@@ -99,10 +90,7 @@ const findExistingYoutubeVideos = (
         .from(schema.ytVideos)
         .where(inArray(schema.ytVideos.ytVideoId, [...ytVideoIds]));
 
-const upsertYoutubeChannel = async (
-  db: DatabaseClient,
-  channel: YoutubeChannelProfile,
-) => {
+const upsertYoutubeChannel = async (db: DatabaseClient, channel: YoutubeChannelProfile) => {
   const [row] = await db
     .insert(schema.channels)
     .values({
@@ -114,10 +102,7 @@ const upsertYoutubeChannel = async (
       bannerUrl: channel.bannerUrl,
       subscriberCount: parseBigIntValue(channel.subscriberCount),
       totalViewCount: parseBigIntValue(channel.viewCount),
-      videoCount:
-        channel.videoCount !== undefined
-          ? Number(channel.videoCount)
-          : undefined,
+      videoCount: channel.videoCount !== undefined ? Number(channel.videoCount) : undefined,
       ytPublishedAt: parseDateValue(channel.publishedAt),
       lastYoutubeSyncedAt: new Date(),
       metadata: channel.metadata,
@@ -132,10 +117,7 @@ const upsertYoutubeChannel = async (
         bannerUrl: channel.bannerUrl,
         subscriberCount: parseBigIntValue(channel.subscriberCount),
         totalViewCount: parseBigIntValue(channel.viewCount),
-        videoCount:
-          channel.videoCount !== undefined
-            ? Number(channel.videoCount)
-            : undefined,
+        videoCount: channel.videoCount !== undefined ? Number(channel.videoCount) : undefined,
         ytPublishedAt: parseDateValue(channel.publishedAt),
         lastYoutubeSyncedAt: new Date(),
         metadata: channel.metadata,
@@ -168,9 +150,7 @@ const upsertYoutubeVideoBundle = async (
       categoryId: options.bundle.video.categoryId,
       defaultLanguage: options.bundle.video.defaultLanguage,
       contentKind: options.bundle.video.contentKind,
-      tags: options.bundle.video.tags
-        ? [...options.bundle.video.tags]
-        : undefined,
+      tags: options.bundle.video.tags ? [...options.bundle.video.tags] : undefined,
       rawPayload: options.bundle.video.metadata,
       lastSeenAt: new Date(),
     })
@@ -186,9 +166,7 @@ const upsertYoutubeVideoBundle = async (
         categoryId: options.bundle.video.categoryId,
         defaultLanguage: options.bundle.video.defaultLanguage,
         contentKind: options.bundle.video.contentKind,
-        tags: options.bundle.video.tags
-          ? [...options.bundle.video.tags]
-          : undefined,
+        tags: options.bundle.video.tags ? [...options.bundle.video.tags] : undefined,
         rawPayload: options.bundle.video.metadata,
         lastSeenAt: new Date(),
       },
@@ -326,9 +304,7 @@ export const syncLatestYoutubeVideos = (options: {
         ),
     });
 
-    const existingVideoIds = new Set(
-      existingBefore.map((video) => video.ytVideoId),
-    );
+    const existingVideoIds = new Set(existingBefore.map((video) => video.ytVideoId));
     const channelRowId = yield* Effect.tryPromise({
       try: () => upsertYoutubeChannel(database.db, channel),
       catch: (cause) =>
@@ -345,11 +321,7 @@ export const syncLatestYoutubeVideos = (options: {
           requestedLimit: limit,
         }),
       catch: (cause) =>
-        createCrawlHelpersError(
-          "createSyncRun",
-          "Failed to create a sync run record.",
-          cause,
-        ),
+        createCrawlHelpersError("createSyncRun", "Failed to create a sync run record.", cause),
     });
 
     return yield* Effect.gen(function* () {
@@ -482,11 +454,7 @@ export const seedYoutubeChannel = (input: string) =>
     const parsed = parseYoutubeChannelInput(input);
     const channel = yield* youtube.readChannel({
       channelId: parsed.channelId,
-      query: parsed.channelId
-        ? undefined
-        : parsed.handle
-          ? `@${parsed.handle}`
-          : parsed.original,
+      query: parsed.channelId ? undefined : parsed.handle ? `@${parsed.handle}` : parsed.original,
     });
     const channelRowId = yield* Effect.tryPromise({
       try: () => upsertYoutubeChannel(database.db, channel),

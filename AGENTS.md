@@ -1,7 +1,8 @@
 Project guidelines:
 
-- use `bun` as the package manager and command runner
-- when installing new packages, use `bun install` instead of manually editing `package.json`
+- use `vp` as the package manager and command runner
+- use `vpx` for local or remote binaries like `drizzle-kit`
+- when installing new packages, use `vp install` instead of manually editing `package.json`
 - use modern svelte and sveltekit patterns and primitives
 - in sveltekit server code, use `$env/dynamic/private` or `$env/static/private` for secrets and server env access. do not use `process.env`
 - avoid `as any` at all costs, lean on inference and real types

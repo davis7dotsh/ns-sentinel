@@ -1,8 +1,4 @@
-import {
-  agentLoop,
-  type AgentMessage,
-  type AgentTool,
-} from "@mariozechner/pi-agent-core";
+import { agentLoop, type AgentMessage, type AgentTool } from "@mariozechner/pi-agent-core";
 import {
   Type,
   getModels,
@@ -58,8 +54,7 @@ const PREVIOUS_VERSION_TOOL_SCHEMA = Type.Object({});
 
 const KNOWN_PROVIDERS = new Set<string>(getProviders());
 
-const isKnownProvider = (value: string): value is KnownProvider =>
-  KNOWN_PROVIDERS.has(value);
+const isKnownProvider = (value: string): value is KnownProvider => KNOWN_PROVIDERS.has(value);
 
 const resolveModel = (args: { modelId: string; provider: string }) => {
   if (!isKnownProvider(args.provider)) {
@@ -78,10 +73,7 @@ const extractTextContent = (content: Message["content"]) => {
 
   return content
     .flatMap((part) =>
-      typeof part === "object" &&
-      part !== null &&
-      "text" in part &&
-      typeof part.text === "string"
+      typeof part === "object" && part !== null && "text" in part && typeof part.text === "string"
         ? [part.text]
         : [],
     )
@@ -89,14 +81,10 @@ const extractTextContent = (content: Message["content"]) => {
 };
 
 const extractAssistantText = (messages: readonly AgentMessage[]) =>
-  [...messages]
-    .reverse()
-    .find((message): message is Message => message.role === "assistant")
+  [...messages].reverse().find((message): message is Message => message.role === "assistant")
     ?.content
     ? extractTextContent(
-        [...messages]
-          .reverse()
-          .find((message): message is Message => message.role === "assistant")!
+        [...messages].reverse().find((message): message is Message => message.role === "assistant")!
           .content,
       )
     : "";
@@ -172,8 +160,7 @@ const extractJsonObject = (value: string) => {
   return source;
 };
 
-const toResponsePreview = (value: string) =>
-  value.replace(/\s+/gu, " ").trim().slice(0, 240);
+const toResponsePreview = (value: string) => value.replace(/\s+/gu, " ").trim().slice(0, 240);
 
 export const generatePageArtifacts = async (input: {
   readonly prompt: string;
@@ -197,9 +184,7 @@ export const generatePageArtifacts = async (input: {
   });
 
   if (!model) {
-    throw new Error(
-      'Unable to resolve the "opencode/claude-sonnet-4-6" model.',
-    );
+    throw new Error('Unable to resolve the "opencode/claude-sonnet-4-6" model.');
   }
 
   const openCodeApiKey = process.env.OPENCODE_API_KEY?.trim();
@@ -302,10 +287,9 @@ export const generatePageArtifacts = async (input: {
   } catch (cause) {
     const preview = toResponsePreview(rawResponse);
 
-    throw new Error(
-      `The page agent returned invalid JSON. Preview: ${preview}`,
-      { cause: cause instanceof Error ? cause : undefined },
-    );
+    throw new Error(`The page agent returned invalid JSON. Preview: ${preview}`, {
+      cause: cause instanceof Error ? cause : undefined,
+    });
   }
 
   const parsed = GeneratedPageArtifactsSchema.safeParse(payload);

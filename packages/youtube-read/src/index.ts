@@ -18,15 +18,11 @@ import {
 const YoutubeConfigSource = Config.all({
   apiKey: Config.string("YOUTUBE_API_KEY"),
   channelId: Config.option(Config.string("YOUTUBE_CHANNEL_ID")),
-  query: Config.string("YOUTUBE_QUERY").pipe(
-    Config.withDefault("Google for Developers"),
-  ),
+  query: Config.string("YOUTUBE_QUERY").pipe(Config.withDefault("Google for Developers")),
 });
 
 const youtubeModule = "@ns-sentinel/youtube-read";
-const youtubeRetryableStatuses = new Set([
-  403, 408, 409, 425, 429, 500, 502, 503, 504,
-]);
+const youtubeRetryableStatuses = new Set([403, 408, 409, 425, 429, 500, 502, 503, 504]);
 const maxBatchVideoIds = 50;
 
 type YoutubeApi = youtube_v3.Youtube;
@@ -118,8 +114,7 @@ const parseChannelLookupQuery = (query: string | undefined) => {
     /youtube\.com\/channel\/([A-Za-z0-9_-]+)/iu.exec(trimmed) ??
     /^(UC[A-Za-z0-9_-]{20,})$/u.exec(trimmed);
   const handleMatch =
-    /youtube\.com\/@([A-Za-z0-9._-]+)/iu.exec(trimmed) ??
-    /^@([A-Za-z0-9._-]+)$/u.exec(trimmed);
+    /youtube\.com\/@([A-Za-z0-9._-]+)/iu.exec(trimmed) ?? /^@([A-Za-z0-9._-]+)$/u.exec(trimmed);
   const usernameMatch = /youtube\.com\/user\/([A-Za-z0-9._-]+)/iu.exec(trimmed);
 
   return {
@@ -140,9 +135,7 @@ const chunk = <A>(items: readonly A[], size: number) => {
   return chunks;
 };
 
-const pickBestThumbnailUrl = (
-  thumbnails: youtube_v3.Schema$ThumbnailDetails | undefined,
-) =>
+const pickBestThumbnailUrl = (thumbnails: youtube_v3.Schema$ThumbnailDetails | undefined) =>
   thumbnails?.maxres?.url ??
   thumbnails?.standard?.url ??
   thumbnails?.high?.url ??
@@ -155,9 +148,7 @@ const parseIsoDurationToSeconds = (isoDuration: string | undefined) => {
     return undefined;
   }
 
-  const match = /^P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/u.exec(
-    isoDuration,
-  );
+  const match = /^P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/u.exec(isoDuration);
 
   if (!match) {
     return undefined;
@@ -166,18 +157,11 @@ const parseIsoDurationToSeconds = (isoDuration: string | undefined) => {
   const [, days = "0", hours = "0", minutes = "0", seconds = "0"] = match;
 
   return (
-    Number(days) * 24 * 60 * 60 +
-    Number(hours) * 60 * 60 +
-    Number(minutes) * 60 +
-    Number(seconds)
+    Number(days) * 24 * 60 * 60 + Number(hours) * 60 * 60 + Number(minutes) * 60 + Number(seconds)
   );
 };
 
-const createYoutubeError = (
-  operation: string,
-  message: string,
-  cause?: unknown,
-) =>
+const createYoutubeError = (operation: string, message: string, cause?: unknown) =>
   createSentinelError({
     module: youtubeModule,
     operation,
@@ -196,9 +180,7 @@ const getYoutubeStatusCode = (cause: unknown) => {
     return undefined;
   }
 
-  return "status" in response && typeof response.status === "number"
-    ? response.status
-    : undefined;
+  return "status" in response && typeof response.status === "number" ? response.status : undefined;
 };
 
 const getYoutubeErrorReason = (cause: unknown) => {
@@ -267,33 +249,22 @@ const retryYoutubeCall = <A>(
   const retries = options?.retries ?? 4;
   const initialDelayMs = options?.initialDelayMs ?? 750;
 
-  const loop = (
-    attempt: number,
-  ): Effect.Effect<A, ReturnType<typeof createSentinelError>> =>
+  const loop = (attempt: number): Effect.Effect<A, ReturnType<typeof createSentinelError>> =>
     Effect.tryPromise({
       try: task,
       catch: (cause) =>
-        createYoutubeError(
-          operation,
-          `YouTube API request failed during ${operation}.`,
-          cause,
-        ),
+        createYoutubeError(operation, `YouTube API request failed during ${operation}.`, cause),
     }).pipe(
       Effect.catchIf(
         (error) => shouldRetryYoutubeCall(error.cause) && attempt < retries,
-        (error) =>
-          Effect.sleep(initialDelayMs * 2 ** attempt).pipe(
-            Effect.andThen(loop(attempt + 1)),
-          ),
+        () => Effect.sleep(initialDelayMs * 2 ** attempt).pipe(Effect.andThen(loop(attempt + 1))),
       ),
     );
 
   return loop(0);
 };
 
-const normalizeChannel = (
-  channel: YoutubeChannelResource,
-): YoutubeChannelProfile | undefined => {
+const normalizeChannel = (channel: YoutubeChannelResource): YoutubeChannelProfile | undefined => {
   if (!channel.id || !channel.snippet?.title) {
     return undefined;
   }
@@ -304,8 +275,7 @@ const normalizeChannel = (
     description: channel.snippet.description ?? undefined,
     customUrl: channel.snippet.customUrl ?? undefined,
     publishedAt: channel.snippet.publishedAt ?? undefined,
-    uploadsPlaylistId:
-      channel.contentDetails?.relatedPlaylists?.uploads ?? undefined,
+    uploadsPlaylistId: channel.contentDetails?.relatedPlaylists?.uploads ?? undefined,
     avatarUrl: pickBestThumbnailUrl(channel.snippet.thumbnails),
     bannerUrl:
       channel.brandingSettings?.image?.bannerExternalUrl ??
@@ -318,9 +288,7 @@ const normalizeChannel = (
   };
 };
 
-const normalizeVideo = (
-  video: YoutubeVideoResource,
-): YoutubeVideoRecord | undefined => {
+const normalizeVideo = (video: YoutubeVideoResource): YoutubeVideoRecord | undefined => {
   const videoId = video.id ?? undefined;
   const publishedAt = video.snippet?.publishedAt ?? undefined;
   const title = video.snippet?.title ?? undefined;
@@ -336,18 +304,13 @@ const normalizeVideo = (
     title,
     description: video.snippet?.description ?? undefined,
     publishedAt,
-    durationSeconds: parseIsoDurationToSeconds(
-      video.contentDetails?.duration ?? undefined,
-    ),
+    durationSeconds: parseIsoDurationToSeconds(video.contentDetails?.duration ?? undefined),
     thumbnailUrl: pickBestThumbnailUrl(video.snippet?.thumbnails),
     categoryId: video.snippet?.categoryId ?? undefined,
     defaultLanguage:
-      video.snippet?.defaultLanguage ??
-      video.snippet?.defaultAudioLanguage ??
-      undefined,
+      video.snippet?.defaultLanguage ?? video.snippet?.defaultAudioLanguage ?? undefined,
     contentKind:
-      video.snippet?.liveBroadcastContent &&
-      video.snippet.liveBroadcastContent !== "none"
+      video.snippet?.liveBroadcastContent && video.snippet.liveBroadcastContent !== "none"
         ? video.snippet.liveBroadcastContent
         : "video",
     liveBroadcastContent: video.snippet?.liveBroadcastContent ?? undefined,
@@ -359,9 +322,7 @@ const normalizeVideo = (
   };
 };
 
-const normalizeComment = (
-  thread: YoutubeCommentThread,
-): YoutubeVideoComment | undefined => {
+const normalizeComment = (thread: YoutubeCommentThread): YoutubeVideoComment | undefined => {
   const topLevelComment = thread.snippet?.topLevelComment;
   const snippet = topLevelComment?.snippet;
   const commentId = topLevelComment?.id ?? undefined;
@@ -401,12 +362,7 @@ const fetchChannelFromApi = (
       ? yield* retryYoutubeCall("channels.list", () =>
           youtube.channels.list({
             id: [resolvedChannelId],
-            part: [
-              "snippet",
-              "statistics",
-              "contentDetails",
-              "brandingSettings",
-            ],
+            part: ["snippet", "statistics", "contentDetails", "brandingSettings"],
             maxResults: 1,
           }),
         )
@@ -414,12 +370,7 @@ const fetchChannelFromApi = (
         ? yield* retryYoutubeCall("channels.list", () =>
             youtube.channels.list({
               forHandle: parsedQuery.handle,
-              part: [
-                "snippet",
-                "statistics",
-                "contentDetails",
-                "brandingSettings",
-              ],
+              part: ["snippet", "statistics", "contentDetails", "brandingSettings"],
               maxResults: 1,
             }),
           )
@@ -427,12 +378,7 @@ const fetchChannelFromApi = (
           ? yield* retryYoutubeCall("channels.list", () =>
               youtube.channels.list({
                 forUsername: parsedQuery.username,
-                part: [
-                  "snippet",
-                  "statistics",
-                  "contentDetails",
-                  "brandingSettings",
-                ],
+                part: ["snippet", "statistics", "contentDetails", "brandingSettings"],
                 maxResults: 1,
               }),
             )
@@ -445,8 +391,7 @@ const fetchChannelFromApi = (
                   part: ["snippet"],
                 })
                 .then((searchResponse) => {
-                  const searchedChannelId =
-                    searchResponse.data.items?.[0]?.id?.channelId;
+                  const searchedChannelId = searchResponse.data.items?.[0]?.id?.channelId;
 
                   if (!searchedChannelId) {
                     throw createYoutubeError(
@@ -457,12 +402,7 @@ const fetchChannelFromApi = (
 
                   return youtube.channels.list({
                     id: [searchedChannelId],
-                    part: [
-                      "snippet",
-                      "statistics",
-                      "contentDetails",
-                      "brandingSettings",
-                    ],
+                    part: ["snippet", "statistics", "contentDetails", "brandingSettings"],
                     maxResults: 1,
                   });
                 }),
@@ -516,9 +456,7 @@ const fetchChannelVideoSummaries = (
           videoId,
           position: item.snippet?.position ?? items.length,
           publishedAt:
-            item.contentDetails?.videoPublishedAt ??
-            item.snippet?.publishedAt ??
-            undefined,
+            item.contentDetails?.videoPublishedAt ?? item.snippet?.publishedAt ?? undefined,
         });
       }
 
@@ -587,10 +525,7 @@ const fetchVideoComments = (
             part: ["snippet"],
             textFormat: "plainText",
             order: "relevance",
-            maxResults: Math.min(
-              100,
-              options.commentsPerVideo - comments.length,
-            ),
+            maxResults: Math.min(100, options.commentsPerVideo - comments.length),
             pageToken,
           }),
         { retries: 2, initialDelayMs: 1000 },
@@ -600,10 +535,7 @@ const fetchVideoComments = (
             const status = getYoutubeStatusCode(error.cause);
             const reason = getYoutubeErrorReason(error.cause);
 
-            return (
-              status === 403 &&
-              (reason === "commentsDisabled" || reason === "forbidden")
-            );
+            return status === 403 && (reason === "commentsDisabled" || reason === "forbidden");
           },
           () => Effect.succeed(undefined),
         ),
@@ -650,15 +582,9 @@ export class YoutubeReader extends ServiceMap.Service<
     readonly readChannel: (options?: {
       readonly channelId?: string;
       readonly query?: string;
-    }) => Effect.Effect<
-      YoutubeChannelProfile,
-      ReturnType<typeof createSentinelError>
-    >;
+    }) => Effect.Effect<YoutubeChannelProfile, ReturnType<typeof createSentinelError>>;
     readonly readChannelVideoSummaries: (
-      options?: Omit<
-        ReadYoutubeChannelVideosOptions,
-        "includeComments" | "commentsPerVideo"
-      >,
+      options?: Omit<ReadYoutubeChannelVideosOptions, "includeComments" | "commentsPerVideo">,
     ) => Effect.Effect<
       {
         readonly channel: YoutubeChannelProfile;
@@ -670,19 +596,11 @@ export class YoutubeReader extends ServiceMap.Service<
       readonly videoIds: readonly string[];
       readonly includeComments?: boolean;
       readonly commentsPerVideo?: number;
-    }) => Effect.Effect<
-      readonly YoutubeVideoBundle[],
-      ReturnType<typeof createSentinelError>
-    >;
+    }) => Effect.Effect<readonly YoutubeVideoBundle[], ReturnType<typeof createSentinelError>>;
     readonly readVideo: (
       options: ReadYoutubeVideoOptions,
-    ) => Effect.Effect<
-      YoutubeVideoBundle,
-      ReturnType<typeof createSentinelError>
-    >;
-    readonly readChannelVideos: (
-      options?: ReadYoutubeChannelVideosOptions,
-    ) => Effect.Effect<
+    ) => Effect.Effect<YoutubeVideoBundle, ReturnType<typeof createSentinelError>>;
+    readonly readChannelVideos: (options?: ReadYoutubeChannelVideosOptions) => Effect.Effect<
       {
         readonly channel: YoutubeChannelProfile;
         readonly videos: readonly YoutubeVideoBundle[];
@@ -696,16 +614,11 @@ export class YoutubeReader extends ServiceMap.Service<
       const config = yield* YoutubeReadConfig;
       const youtube = google.youtube({ version: "v3", auth: config.apiKey });
 
-      const loadChannel = (options?: {
-        readonly channelId?: string;
-        readonly query?: string;
-      }) =>
+      const loadChannel = (options?: { readonly channelId?: string; readonly query?: string }) =>
         fetchChannelFromApi(youtube, {
           channelId:
             options?.channelId ??
-            (Option.isSome(config.channelId)
-              ? config.channelId.value
-              : undefined),
+            (Option.isSome(config.channelId) ? config.channelId.value : undefined),
           query: options?.query ?? config.query,
         });
 
@@ -716,9 +629,7 @@ export class YoutubeReader extends ServiceMap.Service<
       }) =>
         Effect.gen(function* () {
           const records = yield* fetchVideosByIds(youtube, options.videoIds);
-          const recordMap = new Map(
-            records.map((record) => [record.id, record]),
-          );
+          const recordMap = new Map(records.map((record) => [record.id, record]));
           const dedupedIds = [...new Set(options.videoIds)];
           const bundles: YoutubeVideoBundle[] = [];
 
@@ -746,10 +657,7 @@ export class YoutubeReader extends ServiceMap.Service<
           return bundles;
         });
       const loadChannelVideoSummaries = (
-        options?: Omit<
-          ReadYoutubeChannelVideosOptions,
-          "includeComments" | "commentsPerVideo"
-        >,
+        options?: Omit<ReadYoutubeChannelVideosOptions, "includeComments" | "commentsPerVideo">,
       ) =>
         Effect.gen(function* () {
           const channel = yield* loadChannel(options);
@@ -774,8 +682,7 @@ export class YoutubeReader extends ServiceMap.Service<
 
       return YoutubeReader.of({
         readChannel: (options) => loadChannel(options),
-        readChannelVideoSummaries: (options) =>
-          loadChannelVideoSummaries(options),
+        readChannelVideoSummaries: (options) => loadChannelVideoSummaries(options),
         readVideosByIds: (options) => loadVideoBundles(options),
         readVideo: (options) =>
           loadVideoBundles({
@@ -796,8 +703,7 @@ export class YoutubeReader extends ServiceMap.Service<
           ),
         readChannelVideos: (options) =>
           Effect.gen(function* () {
-            const { channel, videos } =
-              yield* loadChannelVideoSummaries(options);
+            const { channel, videos } = yield* loadChannelVideoSummaries(options);
             const bundles = yield* loadVideoBundles({
               videoIds: videos.map((video) => video.videoId),
               includeComments: options?.includeComments,
@@ -814,9 +720,7 @@ export class YoutubeReader extends ServiceMap.Service<
   );
 }
 
-export const layer = YoutubeReader.layer.pipe(
-  Layer.provide(YoutubeReadConfig.layer),
-);
+export const layer = YoutubeReader.layer.pipe(Layer.provide(YoutubeReadConfig.layer));
 
 export const program = Effect.gen(function* () {
   const youtube = yield* YoutubeReader;

@@ -32,10 +32,7 @@ export class ConvexServerError extends Error {
   }
 }
 
-const createBaseConvexServerClient = (
-  client: ConvexHttpClient,
-  mode: "public" | "private",
-) => ({
+const createBaseConvexServerClient = (client: ConvexHttpClient, mode: "public" | "private") => ({
   action: async <
     Args extends DefaultFunctionArgs,
     Result,
@@ -47,9 +44,9 @@ const createBaseConvexServerClient = (
     try {
       return await client.action(
         func,
-        ...([
-          mode === "private" ? withApiKey(args) : args,
-        ] as unknown as OptionalRestArgs<typeof func>),
+        ...([mode === "private" ? withApiKey(args) : args] as unknown as OptionalRestArgs<
+          typeof func
+        >),
       );
     } catch (cause) {
       throw createConvexServerError({
@@ -71,9 +68,10 @@ const createBaseConvexServerClient = (
     try {
       return await client.mutation(
         func,
-        ...([
-          mode === "private" ? withApiKey(args) : args,
-        ] as unknown as ArgsAndOptions<typeof func, { skipQueue: boolean }>),
+        ...([mode === "private" ? withApiKey(args) : args] as unknown as ArgsAndOptions<
+          typeof func,
+          { skipQueue: boolean }
+        >),
       );
     } catch (cause) {
       throw createConvexServerError({
@@ -84,20 +82,16 @@ const createBaseConvexServerClient = (
     }
   },
 
-  query: async <
-    Args extends DefaultFunctionArgs,
-    Result,
-    ComponentPath extends string | undefined,
-  >(
+  query: async <Args extends DefaultFunctionArgs, Result, ComponentPath extends string | undefined>(
     func: FunctionReference<"query", "public", Args, Result, ComponentPath>,
     args: Omit<Args, "apiKey">,
   ) => {
     try {
       return await client.query(
         func,
-        ...([
-          mode === "private" ? withApiKey(args) : args,
-        ] as unknown as OptionalRestArgs<typeof func>),
+        ...([mode === "private" ? withApiKey(args) : args] as unknown as OptionalRestArgs<
+          typeof func
+        >),
       );
     } catch (cause) {
       throw createConvexServerError({
@@ -109,9 +103,7 @@ const createBaseConvexServerClient = (
   },
 });
 
-const withApiKey = <Args extends DefaultFunctionArgs>(
-  args: Omit<Args, "apiKey">,
-) =>
+const withApiKey = <Args extends DefaultFunctionArgs>(args: Omit<Args, "apiKey">) =>
   ({
     ...args,
     apiKey: getRequiredConvexPrivateApiKey(),
@@ -130,8 +122,7 @@ const createConvexServerError = <
   new ConvexServerError({
     cause: input.cause,
     functionName: getFunctionName(input.func),
-    message:
-      input.cause instanceof Error ? input.cause.message : String(input.cause),
+    message: input.cause instanceof Error ? input.cause.message : String(input.cause),
     operation: input.operation,
     traceId: randomUUID(),
   });

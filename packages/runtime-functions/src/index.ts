@@ -1,30 +1,17 @@
 import { Data, Effect, Schema } from "effect";
-import {
-  Database,
-  desc,
-  eq,
-  inArray,
-  layer as databaseLayer,
-  schema,
-} from "@ns-sentinel/db";
+import { Database, desc, eq, inArray, layer as databaseLayer, schema } from "@ns-sentinel/db";
 
-class RuntimeFunctionNotFoundError extends Data.TaggedError(
-  "RuntimeFunctionNotFoundError",
-)<{
+class RuntimeFunctionNotFoundError extends Data.TaggedError("RuntimeFunctionNotFoundError")<{
   readonly functionName: string;
 }> {}
 
-class RuntimeFunctionValidationError extends Data.TaggedError(
-  "RuntimeFunctionValidationError",
-)<{
+class RuntimeFunctionValidationError extends Data.TaggedError("RuntimeFunctionValidationError")<{
   readonly functionName: string;
   readonly message: string;
   readonly cause?: unknown;
 }> {}
 
-class RuntimeFunctionExecutionError extends Data.TaggedError(
-  "RuntimeFunctionExecutionError",
-)<{
+class RuntimeFunctionExecutionError extends Data.TaggedError("RuntimeFunctionExecutionError")<{
   readonly functionName: string;
   readonly message: string;
   readonly cause?: unknown;
@@ -144,8 +131,7 @@ const maxLimit = 50;
 const toDisplayCount = (value: bigint | null | undefined) =>
   value === null || value === undefined ? null : value.toString();
 
-const toIsoString = (value: Date | null | undefined) =>
-  value ? value.toISOString() : null;
+const toIsoString = (value: Date | null | undefined) => (value ? value.toISOString() : null);
 
 const getYoutubeChannelUrl = (channel: {
   readonly ytCustomUrl: string | null;
@@ -155,8 +141,7 @@ const getYoutubeChannelUrl = (channel: {
     ? `https://www.youtube.com/${channel.ytCustomUrl.replace(/^@?/u, "@")}`
     : `https://www.youtube.com/channel/${channel.ytChannelId}`;
 
-const getYoutubeVideoUrl = (ytVideoId: string) =>
-  `https://www.youtube.com/watch?v=${ytVideoId}`;
+const getYoutubeVideoUrl = (ytVideoId: string) => `https://www.youtube.com/watch?v=${ytVideoId}`;
 
 const getYoutubeCommentUrl = (ytVideoId: string, ytCommentId: string) =>
   `${getYoutubeVideoUrl(ytVideoId)}&lc=${ytCommentId}`;
@@ -186,10 +171,7 @@ const normalizeOptionalId = (value: string | undefined) => {
   return trimmed && trimmed.length > 0 ? trimmed : undefined;
 };
 
-const normalizeRequiredId = (input: {
-  readonly functionName: string;
-  readonly value: string;
-}) =>
+const normalizeRequiredId = (input: { readonly functionName: string; readonly value: string }) =>
   Effect.sync(() => input.value.trim()).pipe(
     Effect.flatMap((trimmed) =>
       trimmed.length > 0
@@ -203,15 +185,11 @@ const normalizeRequiredId = (input: {
     ),
   );
 
-const runRuntimeFunctionEffect = <A>(
-  effect: Effect.Effect<A, RuntimeFunctionFailure, Database>,
-) => Effect.runPromise(effect.pipe(Effect.provide(databaseLayer)));
+const runRuntimeFunctionEffect = <A>(effect: Effect.Effect<A, RuntimeFunctionFailure, Database>) =>
+  Effect.runPromise(effect.pipe(Effect.provide(databaseLayer)));
 
 const decodeRuntimeFunctionArgs = <TArgs>(
-  definition: Pick<
-    RuntimeFunctionDefinition<TArgs, unknown>,
-    "decodeArgs" | "name"
-  >,
+  definition: Pick<RuntimeFunctionDefinition<TArgs, unknown>, "decodeArgs" | "name">,
   args: unknown,
 ) =>
   Effect.try({
@@ -271,85 +249,78 @@ const CommentSummarySchema: Schema.Schema<CommentSummary> = Schema.Struct({
   ytCommentId: Schema.String,
 });
 
-const getChannelsDefinition: RuntimeFunctionDefinition<
-  GetChannelsArgs,
-  readonly ChannelSummary[]
-> = {
-  name: "getChannels",
-  description:
-    "List YouTube channels from the local Postgres database, ordered by most recently synced YouTube data.",
-  args: [
-    {
-      defaultValue: "12",
-      description: "Maximum number of channels to return.",
-      name: "limit",
-      required: false,
-      type: "number",
-    },
-    {
-      defaultValue: "0",
-      description: "Zero-based offset for pagination.",
-      name: "offset",
-      required: false,
-      type: "number",
-    },
-  ],
-  argsSchema: Schema.Struct({
-    limit: Schema.optional(Schema.Number),
-    offset: Schema.optional(Schema.Number),
-  }),
-  decodeArgs: Schema.decodeUnknownSync(
-    Schema.Struct({
+const getChannelsDefinition: RuntimeFunctionDefinition<GetChannelsArgs, readonly ChannelSummary[]> =
+  {
+    name: "getChannels",
+    description:
+      "List YouTube channels from the local Postgres database, ordered by most recently synced YouTube data.",
+    args: [
+      {
+        defaultValue: "12",
+        description: "Maximum number of channels to return.",
+        name: "limit",
+        required: false,
+        type: "number",
+      },
+      {
+        defaultValue: "0",
+        description: "Zero-based offset for pagination.",
+        name: "offset",
+        required: false,
+        type: "number",
+      },
+    ],
+    argsSchema: Schema.Struct({
       limit: Schema.optional(Schema.Number),
       offset: Schema.optional(Schema.Number),
     }),
-  ),
-  resultSchema: Schema.Array(ChannelSummarySchema),
-  returns:
-    "An array of channel summaries including names, IDs, social handles, sync timestamps, and headline metrics.",
-  impl: (args) =>
-    Effect.gen(function* () {
-      const database = yield* Database;
-      const channels = yield* Effect.tryPromise({
-        try: () =>
-          database.db.query.channels.findMany({
-            limit: normalizeLimit(args.limit),
-            offset: normalizeOffset(args.offset),
-            orderBy: (channels, { desc }) => [
-              desc(channels.lastYoutubeSyncedAt),
-            ],
-          }),
-        catch: (cause) =>
-          new RuntimeFunctionExecutionError({
-            functionName: "getChannels",
-            message: "Failed to load channels from Postgres.",
-            cause,
-          }),
-      });
+    decodeArgs: Schema.decodeUnknownSync(
+      Schema.Struct({
+        limit: Schema.optional(Schema.Number),
+        offset: Schema.optional(Schema.Number),
+      }),
+    ),
+    resultSchema: Schema.Array(ChannelSummarySchema),
+    returns:
+      "An array of channel summaries including names, IDs, social handles, sync timestamps, and headline metrics.",
+    impl: (args) =>
+      Effect.gen(function* () {
+        const database = yield* Database;
+        const channels = yield* Effect.tryPromise({
+          try: () =>
+            database.db.query.channels.findMany({
+              limit: normalizeLimit(args.limit),
+              offset: normalizeOffset(args.offset),
+              orderBy: (channels, { desc }) => [desc(channels.lastYoutubeSyncedAt)],
+            }),
+          catch: (cause) =>
+            new RuntimeFunctionExecutionError({
+              functionName: "getChannels",
+              message: "Failed to load channels from Postgres.",
+              cause,
+            }),
+        });
 
-      return channels.map((channel) => ({
-        avatarUrl: channel.avatarUrl,
-        bannerUrl: channel.bannerUrl,
-        description: channel.description,
-        id: channel.id,
-        lastXSyncedAt: toIsoString(channel.lastXSyncedAt),
-        lastYoutubeSyncedAt: toIsoString(channel.lastYoutubeSyncedAt),
-        name: channel.name,
-        subscriberCount: toDisplayCount(channel.subscriberCount),
-        totalViewCount: toDisplayCount(channel.totalViewCount),
-        videoCount: channel.videoCount,
-        xUsername: channel.xUsername,
-        ytChannelId: channel.ytChannelId,
-        ytCustomUrl: channel.ytCustomUrl,
-        youtubeUrl: getYoutubeChannelUrl(channel),
-      }));
-    }),
-};
+        return channels.map((channel) => ({
+          avatarUrl: channel.avatarUrl,
+          bannerUrl: channel.bannerUrl,
+          description: channel.description,
+          id: channel.id,
+          lastXSyncedAt: toIsoString(channel.lastXSyncedAt),
+          lastYoutubeSyncedAt: toIsoString(channel.lastYoutubeSyncedAt),
+          name: channel.name,
+          subscriberCount: toDisplayCount(channel.subscriberCount),
+          totalViewCount: toDisplayCount(channel.totalViewCount),
+          videoCount: channel.videoCount,
+          xUsername: channel.xUsername,
+          ytChannelId: channel.ytChannelId,
+          ytCustomUrl: channel.ytCustomUrl,
+          youtubeUrl: getYoutubeChannelUrl(channel),
+        }));
+      }),
+  };
 
-const getVideosDefinition: RuntimeFunctionDefinition<
-  GetVideosArgs,
-  readonly VideoSummary[]
-> = {
+const getVideosDefinition: RuntimeFunctionDefinition<GetVideosArgs, readonly VideoSummary[]> = {
   name: "getVideos",
   description:
     "List YouTube videos from the local Postgres database, optionally filtered to one channel, ordered by newest publish date.",
@@ -401,8 +372,7 @@ const getVideosDefinition: RuntimeFunctionDefinition<
             offset: normalizeOffset(args.offset),
             orderBy: (ytVideos, { desc }) => [desc(ytVideos.publishedAt)],
             where: normalizedChannelId
-              ? (ytVideos, { eq }) =>
-                  eq(ytVideos.channelId, normalizedChannelId)
+              ? (ytVideos, { eq }) => eq(ytVideos.channelId, normalizedChannelId)
               : undefined,
           }),
         catch: (cause) =>
@@ -428,9 +398,7 @@ const getVideosDefinition: RuntimeFunctionDefinition<
                     viewCount: schema.ytVideoMetricsSnapshots.viewCount,
                   })
                   .from(schema.ytVideoMetricsSnapshots)
-                  .where(
-                    inArray(schema.ytVideoMetricsSnapshots.videoId, videoIds),
-                  )
+                  .where(inArray(schema.ytVideoMetricsSnapshots.videoId, videoIds))
                   .orderBy(
                     desc(schema.ytVideoMetricsSnapshots.capturedAt),
                     desc(schema.ytVideoMetricsSnapshots.videoId),
@@ -486,113 +454,111 @@ const getVideosDefinition: RuntimeFunctionDefinition<
     }),
 };
 
-const getCommentsDefinition: RuntimeFunctionDefinition<
-  GetCommentsArgs,
-  readonly CommentSummary[]
-> = {
-  name: "getComments",
-  description:
-    "List YouTube comments for a specific video from the local Postgres database, ordered by most-liked comments first.",
-  args: [
-    {
-      description: "Required internal video ID to load comments for.",
-      name: "videoId",
-      required: true,
-      type: "string",
-    },
-    {
-      defaultValue: "12",
-      description: "Maximum number of comments to return.",
-      name: "limit",
-      required: false,
-      type: "number",
-    },
-    {
-      defaultValue: "0",
-      description: "Zero-based offset for pagination.",
-      name: "offset",
-      required: false,
-      type: "number",
-    },
-  ],
-  argsSchema: Schema.Struct({
-    limit: Schema.optional(Schema.Number),
-    offset: Schema.optional(Schema.Number),
-    videoId: Schema.String,
-  }),
-  decodeArgs: Schema.decodeUnknownSync(
-    Schema.Struct({
+const getCommentsDefinition: RuntimeFunctionDefinition<GetCommentsArgs, readonly CommentSummary[]> =
+  {
+    name: "getComments",
+    description:
+      "List YouTube comments for a specific video from the local Postgres database, ordered by most-liked comments first.",
+    args: [
+      {
+        description: "Required internal video ID to load comments for.",
+        name: "videoId",
+        required: true,
+        type: "string",
+      },
+      {
+        defaultValue: "12",
+        description: "Maximum number of comments to return.",
+        name: "limit",
+        required: false,
+        type: "number",
+      },
+      {
+        defaultValue: "0",
+        description: "Zero-based offset for pagination.",
+        name: "offset",
+        required: false,
+        type: "number",
+      },
+    ],
+    argsSchema: Schema.Struct({
       limit: Schema.optional(Schema.Number),
       offset: Schema.optional(Schema.Number),
       videoId: Schema.String,
     }),
-  ),
-  resultSchema: Schema.Array(CommentSummarySchema),
-  returns:
-    "An array of YouTube comment summaries including author info, body text, like counts, reply counts, and direct comment URLs.",
-  impl: (args) =>
-    Effect.gen(function* () {
-      const database = yield* Database;
-      const videoId = yield* normalizeRequiredId({
-        functionName: "getComments",
-        value: args.videoId,
-      });
-      const [video] = yield* Effect.tryPromise({
-        try: () =>
-          database.db
-            .select({
-              id: schema.ytVideos.id,
-              ytVideoId: schema.ytVideos.ytVideoId,
-            })
-            .from(schema.ytVideos)
-            .where(eq(schema.ytVideos.id, videoId))
-            .limit(1),
-        catch: (cause) =>
-          new RuntimeFunctionExecutionError({
-            functionName: "getComments",
-            message: "Failed to load the requested video from Postgres.",
-            cause,
-          }),
-      });
+    decodeArgs: Schema.decodeUnknownSync(
+      Schema.Struct({
+        limit: Schema.optional(Schema.Number),
+        offset: Schema.optional(Schema.Number),
+        videoId: Schema.String,
+      }),
+    ),
+    resultSchema: Schema.Array(CommentSummarySchema),
+    returns:
+      "An array of YouTube comment summaries including author info, body text, like counts, reply counts, and direct comment URLs.",
+    impl: (args) =>
+      Effect.gen(function* () {
+        const database = yield* Database;
+        const videoId = yield* normalizeRequiredId({
+          functionName: "getComments",
+          value: args.videoId,
+        });
+        const [video] = yield* Effect.tryPromise({
+          try: () =>
+            database.db
+              .select({
+                id: schema.ytVideos.id,
+                ytVideoId: schema.ytVideos.ytVideoId,
+              })
+              .from(schema.ytVideos)
+              .where(eq(schema.ytVideos.id, videoId))
+              .limit(1),
+          catch: (cause) =>
+            new RuntimeFunctionExecutionError({
+              functionName: "getComments",
+              message: "Failed to load the requested video from Postgres.",
+              cause,
+            }),
+        });
 
-      if (!video) {
-        return [];
-      }
+        if (!video) {
+          return [];
+        }
 
-      const comments = yield* Effect.tryPromise({
-        try: () =>
-          database.db.query.ytComments.findMany({
-            limit: normalizeLimit(args.limit),
-            offset: normalizeOffset(args.offset),
-            orderBy: (ytComments, { desc }) => [
-              desc(ytComments.likeCount),
-              desc(ytComments.publishedAt),
-            ],
-            where: (ytComments, { eq }) => eq(ytComments.videoId, videoId),
-          }),
-        catch: (cause) =>
-          new RuntimeFunctionExecutionError({
-            functionName: "getComments",
-            message: "Failed to load comments from Postgres.",
-            cause,
-          }),
-      });
+        const comments = yield* Effect.tryPromise({
+          try: () =>
+            database.db.query.ytComments.findMany({
+              limit: normalizeLimit(args.limit),
+              offset: normalizeOffset(args.offset),
+              orderBy: (ytComments, { desc }) => [
+                desc(ytComments.likeCount),
+                desc(ytComments.publishedAt),
+              ],
+              where: (ytComments, { eq }) => eq(ytComments.videoId, videoId),
+            }),
+          catch: (cause) =>
+            new RuntimeFunctionExecutionError({
+              functionName: "getComments",
+              message: "Failed to load comments from Postgres.",
+              cause,
+            }),
+        });
 
-      return comments.map((comment) => ({
-        authorChannelId: comment.authorChannelId,
-        authorChannelUrl: getYoutubeAuthorChannelUrl(comment.authorChannelId),
-        authorDisplayName: comment.authorDisplayName,
-        bodyText: comment.bodyText,
-        id: comment.id,
-        likeCount: toDisplayCount(comment.likeCount),
-        publishedAt: comment.publishedAt.toISOString(),
-        replyCount: comment.replyCount,
-        videoId: comment.videoId,
-        youtubeUrl: getYoutubeCommentUrl(video.ytVideoId, comment.ytCommentId),
-        ytCommentId: comment.ytCommentId,
-      }));
-    }),
-};
+        return comments.map((comment) => ({
+          authorChannelId: comment.authorChannelId,
+          authorChannelUrl: getYoutubeAuthorChannelUrl(comment.authorChannelId),
+          authorDisplayName: comment.authorDisplayName,
+          bodyText: comment.bodyText,
+          id: comment.id,
+          likeCount: toDisplayCount(comment.likeCount),
+          publishedAt: comment.publishedAt.toISOString(),
+          replyCount: comment.replyCount,
+          videoId: comment.videoId,
+          youtubeUrl: getYoutubeCommentUrl(video.ytVideoId, comment.ytCommentId),
+          ytCommentId: comment.ytCommentId,
+        }));
+      }),
+  };
 
 const runtimeFunctionDefinitions = [
   getChannelsDefinition,
@@ -600,14 +566,12 @@ const runtimeFunctionDefinitions = [
   getCommentsDefinition,
 ] as const;
 
-const runtimeFunctionMetadata = runtimeFunctionDefinitions.map(
-  (definition) => ({
-    args: definition.args,
-    description: definition.description,
-    name: definition.name,
-    returns: definition.returns,
-  }),
-) satisfies readonly RuntimeFunctionMetadata[];
+const runtimeFunctionMetadata = runtimeFunctionDefinitions.map((definition) => ({
+  args: definition.args,
+  description: definition.description,
+  name: definition.name,
+  returns: definition.returns,
+})) satisfies readonly RuntimeFunctionMetadata[];
 
 const executeRuntimeFunction = <TArgs, TResult>(
   definition: RuntimeFunctionDefinition<TArgs, TResult>,
@@ -628,17 +592,11 @@ export const callRuntimeFunction = async (input: {
 }) => {
   switch (input.name) {
     case "getChannels":
-      return runRuntimeFunctionEffect(
-        executeRuntimeFunction(getChannelsDefinition, input.args),
-      );
+      return runRuntimeFunctionEffect(executeRuntimeFunction(getChannelsDefinition, input.args));
     case "getVideos":
-      return runRuntimeFunctionEffect(
-        executeRuntimeFunction(getVideosDefinition, input.args),
-      );
+      return runRuntimeFunctionEffect(executeRuntimeFunction(getVideosDefinition, input.args));
     case "getComments":
-      return runRuntimeFunctionEffect(
-        executeRuntimeFunction(getCommentsDefinition, input.args),
-      );
+      return runRuntimeFunctionEffect(executeRuntimeFunction(getCommentsDefinition, input.args));
     default:
       throw new RuntimeFunctionNotFoundError({
         functionName: input.name,

@@ -2,7 +2,7 @@
  * Getting started:
  * 1. In Google Cloud, create or reuse a project and enable the Gmail API.
  * 2. Create an OAuth client for a desktop app and download the client JSON into the repo-root `credentials.json`.
- * 3. Run `bun run test:gmail` from the repo root. The first run opens a browser, asks for `gmail.readonly`, and saves a repo-root `token.json`.
+ * 3. Run `vp run test:gmail` from the repo root. The first run opens a browser, asks for `gmail.readonly`, and saves a repo-root `token.json`.
  * 4. Optionally export `GMAIL_QUERY` to filter the sample inbox search.
  */
 
@@ -29,9 +29,7 @@ const GmailConfigSource = Config.all({
   credentialsPath: Config.string("GMAIL_CREDENTIALS_PATH").pipe(
     Config.withDefault(defaultCredentialsPath),
   ),
-  tokenPath: Config.string("GMAIL_TOKEN_PATH").pipe(
-    Config.withDefault(defaultTokenPath),
-  ),
+  tokenPath: Config.string("GMAIL_TOKEN_PATH").pipe(Config.withDefault(defaultTokenPath)),
   query: Config.option(Config.string("GMAIL_QUERY")),
 });
 
@@ -60,8 +58,7 @@ const parseCredentials = (value: unknown) => {
       createSentinelError({
         module: "@ns-sentinel/gmail-read",
         operation: "parseCredentials",
-        message:
-          "credentials.json must contain an installed or web OAuth client.",
+        message: "credentials.json must contain an installed or web OAuth client.",
       }),
     );
   }
@@ -91,12 +88,8 @@ const parseCredentials = (value: unknown) => {
   });
 };
 
-const getHeader = (
-  headers: { name?: string | null; value?: string | null }[],
-  name: string,
-) =>
-  headers.find((header) => header.name?.toLowerCase() === name.toLowerCase())
-    ?.value ?? null;
+const getHeader = (headers: { name?: string | null; value?: string | null }[], name: string) =>
+  headers.find((header) => header.name?.toLowerCase() === name.toLowerCase())?.value ?? null;
 
 export class GmailReadConfig extends ServiceMap.Service<
   GmailReadConfig,
@@ -231,10 +224,7 @@ export class GmailReader extends ServiceMap.Service<
 
         yield* Effect.tryPromise({
           try: () =>
-            writeFile(
-              config.tokenPath,
-              JSON.stringify(authenticatedClient.credentials, null, 2),
-            ),
+            writeFile(config.tokenPath, JSON.stringify(authenticatedClient.credentials, null, 2)),
           catch: (cause) =>
             createSentinelError({
               module: "@ns-sentinel/gmail-read",
@@ -332,9 +322,7 @@ export class GmailReader extends ServiceMap.Service<
   );
 }
 
-export const layer = GmailReader.layer.pipe(
-  Layer.provide(GmailReadConfig.layer),
-);
+export const layer = GmailReader.layer.pipe(Layer.provide(GmailReadConfig.layer));
 
 export const program = Effect.gen(function* () {
   const gmail = yield* GmailReader;

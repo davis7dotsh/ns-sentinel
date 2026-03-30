@@ -15,9 +15,7 @@ export const load = async ({ params, url }) => {
   const convex = createConvexPublicServerClient(convexUrl);
   const initialPageView = await convex.query(api.pages.getPageView, {
     slug: params.slug,
-    versionId: selectedVersionId
-      ? (selectedVersionId as Id<"pageVersions">)
-      : undefined,
+    versionId: selectedVersionId ? (selectedVersionId as Id<"pageVersions">) : undefined,
   });
 
   if (!initialPageView) {

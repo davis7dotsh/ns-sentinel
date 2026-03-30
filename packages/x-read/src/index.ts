@@ -22,8 +22,7 @@ const XConfigSource = Config.all({
 });
 
 const xModule = "@ns-sentinel/x-read";
-const xPostUrlPattern =
-  /https?:\/\/(?:www\.|mobile\.)?(?:x|twitter)\.com\/[^/]+\/status\/(\d+)/iu;
+const xPostUrlPattern = /https?:\/\/(?:www\.|mobile\.)?(?:x|twitter)\.com\/[^/]+\/status\/(\d+)/iu;
 
 type XApiResponse = Record<string, unknown>;
 
@@ -66,17 +65,13 @@ const createXError = (operation: string, message: string, cause?: unknown) =>
   });
 
 const extractRecord = (value: unknown) =>
-  typeof value === "object" && value !== null
-    ? (value as Record<string, unknown>)
-    : undefined;
+  typeof value === "object" && value !== null ? (value as Record<string, unknown>) : undefined;
 
 const extractString = (value: unknown) =>
   typeof value === "string" && value.length > 0 ? value : undefined;
 
 const extractStringArray = (value: unknown) =>
-  Array.isArray(value)
-    ? value.flatMap((entry) => (typeof entry === "string" ? [entry] : []))
-    : [];
+  Array.isArray(value) ? value.flatMap((entry) => (typeof entry === "string" ? [entry] : [])) : [];
 
 const extractPostIdFromInput = (input: string) => {
   const trimmed = input.trim();
@@ -136,10 +131,9 @@ const collectMediaUrls = (
       return [];
     }
 
-    return [
-      extractString(item.url),
-      extractString(item.preview_image_url),
-    ].flatMap((value) => (value ? [value] : []));
+    return [extractString(item.url), extractString(item.preview_image_url)].flatMap((value) =>
+      value ? [value] : [],
+    );
   });
 };
 
@@ -186,13 +180,8 @@ const normalizeXPost = (response: XApiResponse): XPostRecord | undefined => {
         return expandedUrl ? [expandedUrl] : url ? [url] : [];
       })
     : [];
-  const mediaUrls = collectMediaUrls(
-    includes,
-    extractStringArray(attachments?.media_keys),
-  );
-  const referencedPosts = Array.isArray(data.referenced_tweets)
-    ? data.referenced_tweets
-    : [];
+  const mediaUrls = collectMediaUrls(includes, extractStringArray(attachments?.media_keys));
+  const referencedPosts = Array.isArray(data.referenced_tweets) ? data.referenced_tweets : [];
   const quotedPostId = referencedPosts.flatMap((item) => {
     const record = extractRecord(item);
 
@@ -268,12 +257,7 @@ export class XReader extends ServiceMap.Service<
             const response = yield* Effect.tryPromise({
               try: () =>
                 client.users.getByUsername(username, {
-                  userFields: [
-                    "description",
-                    "public_metrics",
-                    "verified",
-                    "created_at",
-                  ],
+                  userFields: ["description", "public_metrics", "verified", "created_at"],
                 }),
               catch: (cause) =>
                 createXError(
@@ -308,10 +292,7 @@ export class XReader extends ServiceMap.Service<
 
             if (!postId) {
               return yield* Effect.fail(
-                createXError(
-                  "posts.getById",
-                  `Could not parse an X post ID from "${idOrUrl}".`,
-                ),
+                createXError("posts.getById", `Could not parse an X post ID from "${idOrUrl}".`),
               );
             }
 
@@ -334,21 +315,14 @@ export class XReader extends ServiceMap.Service<
                   userFields: ["name", "username"],
                 }),
               catch: (cause) =>
-                createXError(
-                  "posts.getById",
-                  `Failed to fetch the X post "${postId}".`,
-                  cause,
-                ),
+                createXError("posts.getById", `Failed to fetch the X post "${postId}".`, cause),
             });
 
             const normalized = normalizeXPost(response as XApiResponse);
 
             if (!normalized) {
               return yield* Effect.fail(
-                createXError(
-                  "posts.getById",
-                  `No X post data was returned for "${postId}".`,
-                ),
+                createXError("posts.getById", `No X post data was returned for "${postId}".`),
               );
             }
 

@@ -14,9 +14,7 @@ export const formatLongCount = (value: string | number | null | undefined) => {
     return "0";
   }
 
-  return new Intl.NumberFormat("en-US").format(
-    typeof value === "string" ? Number(value) : value,
-  );
+  return new Intl.NumberFormat("en-US").format(typeof value === "string" ? Number(value) : value);
 };
 
 export const formatDate = (value: string | null | undefined) => {

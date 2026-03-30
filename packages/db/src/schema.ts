@@ -12,9 +12,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 const timestamps = {
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .defaultNow()
     .$onUpdate(() => new Date())
@@ -67,9 +65,7 @@ export const ytVideos = pgTable(
     contentKind: varchar("content_kind", { length: 32 }).default("video"),
     tags: jsonb("tags").$type<string[]>(),
     rawPayload: jsonb("raw_payload"),
-    firstSeenAt: timestamp("first_seen_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
     lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -88,9 +84,7 @@ export const ytVideoMetricsSnapshots = pgTable(
     videoId: uuid("video_id")
       .notNull()
       .references(() => ytVideos.id, { onDelete: "cascade" }),
-    capturedAt: timestamp("captured_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    capturedAt: timestamp("captured_at", { withTimezone: true }).defaultNow().notNull(),
     viewCount: bigint("view_count", { mode: "bigint" }),
     likeCount: bigint("like_count", { mode: "bigint" }),
     commentCount: bigint("comment_count", { mode: "bigint" }),
@@ -119,9 +113,7 @@ export const ytComments = pgTable(
     publishedAt: timestamp("published_at", { withTimezone: true }).notNull(),
     sourceUpdatedAt: timestamp("source_updated_at", { withTimezone: true }),
     rawPayload: jsonb("raw_payload"),
-    firstSeenAt: timestamp("first_seen_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
     lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -156,9 +148,7 @@ export const xPosts = pgTable(
       withTimezone: true,
     }).notNull(),
     rawPayload: jsonb("raw_payload"),
-    firstSeenAt: timestamp("first_seen_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),
     lastSeenAt: timestamp("last_seen_at", { withTimezone: true })
       .defaultNow()
       .$onUpdate(() => new Date())
@@ -177,9 +167,7 @@ export const xPostMetricsSnapshots = pgTable(
     postId: uuid("post_id")
       .notNull()
       .references(() => xPosts.id, { onDelete: "cascade" }),
-    capturedAt: timestamp("captured_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    capturedAt: timestamp("captured_at", { withTimezone: true }).defaultNow().notNull(),
     viewCount: bigint("view_count", { mode: "bigint" }),
     likeCount: bigint("like_count", { mode: "bigint" }),
     replyCount: bigint("reply_count", { mode: "bigint" }),
@@ -203,9 +191,7 @@ export const syncRuns = pgTable(
       onDelete: "set null",
     }),
     status: varchar("status", { length: 32 }).notNull(),
-    startedAt: timestamp("started_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }).defaultNow().notNull(),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
     cursor: text("cursor"),
     discoveredCount: integer("discovered_count"),

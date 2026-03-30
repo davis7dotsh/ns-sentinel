@@ -102,8 +102,7 @@ export class NotionReader extends ServiceMap.Service<
                       createSentinelError({
                         module: "@ns-sentinel/notion-read",
                         operation: "retrievePage",
-                        message:
-                          "Failed to retrieve the requested Notion page.",
+                        message: "Failed to retrieve the requested Notion page.",
                         cause,
                       }),
                   });
@@ -122,9 +121,7 @@ export class NotionReader extends ServiceMap.Service<
   );
 }
 
-export const layer = NotionReader.layer.pipe(
-  Layer.provide(NotionReadConfig.layer),
-);
+export const layer = NotionReader.layer.pipe(Layer.provide(NotionReadConfig.layer));
 
 export const program = Effect.gen(function* () {
   const notion = yield* NotionReader;

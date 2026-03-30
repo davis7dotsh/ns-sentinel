@@ -7,18 +7,13 @@ export const getGeneratedApiOrigin = () => {
   const value = env.GENERATED_API_ORIGIN?.trim();
 
   if (!value) {
-    throw new Error(
-      "Missing GENERATED_API_ORIGIN. Point it at the runtime app origin.",
-    );
+    throw new Error("Missing GENERATED_API_ORIGIN. Point it at the runtime app origin.");
   }
 
   return trimTrailingSlash(value);
 };
 
-export const createGeneratedApiUrl = (
-  path: string,
-  searchParams?: URLSearchParams,
-) => {
+export const createGeneratedApiUrl = (path: string, searchParams?: URLSearchParams) => {
   const url = new URL(path, `${getGeneratedApiOrigin()}/`);
 
   if (searchParams) {
@@ -52,8 +47,7 @@ export const fetchGeneratedApi = async (
     new URL(path, "http://127.0.0.1:3003/"),
   ].filter(
     (value, index, list) =>
-      list.findIndex((entry) => entry.toString() === value.toString()) ===
-      index,
+      list.findIndex((entry) => entry.toString() === value.toString()) === index,
   );
 
   let lastCause: unknown;

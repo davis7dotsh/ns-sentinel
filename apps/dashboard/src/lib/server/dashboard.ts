@@ -1,13 +1,6 @@
 import { Data, Effect } from "effect";
 import { error } from "@sveltejs/kit";
-import {
-  Database,
-  desc,
-  eq,
-  inArray,
-  layer as databaseLayer,
-  schema,
-} from "@ns-sentinel/db";
+import { Database, desc, eq, inArray, layer as databaseLayer, schema } from "@ns-sentinel/db";
 
 class DashboardDataError extends Data.TaggedError("DashboardDataError")<{
   readonly message: string;
@@ -17,8 +10,7 @@ class DashboardDataError extends Data.TaggedError("DashboardDataError")<{
 const toDisplayCount = (value: bigint | null | undefined) =>
   value === null || value === undefined ? null : value.toString();
 
-const toDisplayDate = (value: Date | null | undefined) =>
-  value ? value.toISOString() : null;
+const toDisplayDate = (value: Date | null | undefined) => (value ? value.toISOString() : null);
 
 const getYoutubeChannelUrl = (channel: {
   readonly ytCustomUrl: string | null;
@@ -28,8 +20,7 @@ const getYoutubeChannelUrl = (channel: {
     ? `https://www.youtube.com/${channel.ytCustomUrl.replace(/^@?/u, "@")}`
     : `https://www.youtube.com/channel/${channel.ytChannelId}`;
 
-const getYoutubeVideoUrl = (ytVideoId: string) =>
-  `https://www.youtube.com/watch?v=${ytVideoId}`;
+const getYoutubeVideoUrl = (ytVideoId: string) => `https://www.youtube.com/watch?v=${ytVideoId}`;
 
 const getYoutubeCommentUrl = (ytVideoId: string, ytCommentId: string) =>
   `${getYoutubeVideoUrl(ytVideoId)}&lc=${ytCommentId}`;
@@ -37,24 +28,20 @@ const getYoutubeCommentUrl = (ytVideoId: string, ytCommentId: string) =>
 const getYoutubeAuthorChannelUrl = (authorChannelId: string | null) =>
   authorChannelId ? `https://www.youtube.com/channel/${authorChannelId}` : null;
 
-const runDashboardEffect = async <A>(
-  effect: Effect.Effect<A, DashboardDataError, Database>,
-) =>
-  Effect.runPromise(effect.pipe(Effect.provide(databaseLayer))).catch(
-    (cause) => {
-      if (
-        typeof cause === "object" &&
-        cause !== null &&
-        "status" in cause &&
-        typeof cause.status === "number"
-      ) {
-        throw cause;
-      }
+const runDashboardEffect = async <A>(effect: Effect.Effect<A, DashboardDataError, Database>) =>
+  Effect.runPromise(effect.pipe(Effect.provide(databaseLayer))).catch((cause) => {
+    if (
+      typeof cause === "object" &&
+      cause !== null &&
+      "status" in cause &&
+      typeof cause.status === "number"
+    ) {
+      throw cause;
+    }
 
-      console.error(cause);
-      throw error(500, "Failed to load dashboard data.");
-    },
-  );
+    console.error(cause);
+    throw error(500, "Failed to load dashboard data.");
+  });
 
 export const getChannelsData = () =>
   runDashboardEffect(
@@ -64,9 +51,7 @@ export const getChannelsData = () =>
         try: () =>
           database.db.query.channels.findMany({
             where: (channels, { isNotNull }) => isNotNull(channels.ytChannelId),
-            orderBy: (channels, { desc }) => [
-              desc(channels.lastYoutubeSyncedAt),
-            ],
+            orderBy: (channels, { desc }) => [desc(channels.lastYoutubeSyncedAt)],
           }),
         catch: (cause) =>
           new DashboardDataError({
@@ -139,9 +124,7 @@ export const getChannelPageData = (channelId: string) =>
                     commentCount: schema.ytVideoMetricsSnapshots.commentCount,
                   })
                   .from(schema.ytVideoMetricsSnapshots)
-                  .where(
-                    inArray(schema.ytVideoMetricsSnapshots.videoId, videoIds),
-                  )
+                  .where(inArray(schema.ytVideoMetricsSnapshots.videoId, videoIds))
                   .orderBy(
                     desc(schema.ytVideoMetricsSnapshots.capturedAt),
                     desc(schema.ytVideoMetricsSnapshots.videoId),
@@ -208,10 +191,7 @@ export const getChannelPageData = (channelId: string) =>
     }),
   );
 
-export const getVideoPageData = (input: {
-  readonly channelId: string;
-  readonly videoId: string;
-}) =>
+export const getVideoPageData = (input: { readonly channelId: string; readonly videoId: string }) =>
   runDashboardEffect(
     Effect.gen(function* () {
       const database = yield* Database;
@@ -235,10 +215,7 @@ export const getVideoPageData = (input: {
         try: () =>
           database.db.query.ytVideos.findFirst({
             where: (ytVideos, { and, eq }) =>
-              and(
-                eq(ytVideos.id, input.videoId),
-                eq(ytVideos.channelId, input.channelId),
-              ),
+              and(eq(ytVideos.id, input.videoId), eq(ytVideos.channelId, input.channelId)),
           }),
         catch: (cause) =>
           new DashboardDataError({
@@ -274,8 +251,7 @@ export const getVideoPageData = (input: {
       const comments = yield* Effect.tryPromise({
         try: () =>
           database.db.query.ytComments.findMany({
-            where: (ytComments, { eq }) =>
-              eq(ytComments.videoId, input.videoId),
+            where: (ytComments, { eq }) => eq(ytComments.videoId, input.videoId),
             orderBy: (ytComments, { desc }) => [
               desc(ytComments.likeCount),
               desc(ytComments.publishedAt),
@@ -324,10 +300,7 @@ export const getVideoPageData = (input: {
           likeCount: toDisplayCount(comment.likeCount),
           replyCount: comment.replyCount,
           publishedAt: comment.publishedAt.toISOString(),
-          youtubeUrl: getYoutubeCommentUrl(
-            video.ytVideoId,
-            comment.ytCommentId,
-          ),
+          youtubeUrl: getYoutubeCommentUrl(video.ytVideoId, comment.ytCommentId),
         })),
       };
     }),

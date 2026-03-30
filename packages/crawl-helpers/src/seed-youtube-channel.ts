@@ -1,3 +1,4 @@
+import "@ns-sentinel/core/register-env";
 import { Effect, Layer } from "effect";
 import { isDirectExecution, runNodeMain } from "@ns-sentinel/core";
 import { layer as databaseLayer } from "@ns-sentinel/db";
@@ -9,9 +10,7 @@ const crawlerLayer = Layer.mergeAll(databaseLayer, youtubeLayer);
 const defaultChannel = "https://www.youtube.com/@bmdavis419";
 
 export const program = Effect.gen(function* () {
-  const result = yield* seedYoutubeChannel(
-    process.env.YOUTUBE_SEED_CHANNEL_URL ?? defaultChannel,
-  );
+  const result = yield* seedYoutubeChannel(process.env.YOUTUBE_SEED_CHANNEL_URL ?? defaultChannel);
 
   yield* Effect.sync(() => {
     console.log(JSON.stringify(result, null, 2));

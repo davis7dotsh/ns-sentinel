@@ -1,0 +1,31 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalog:
+  "@mariozechner/pi-agent-core": ^0.64.0
+  "@mariozechner/pi-ai": ^0.64.0
+  "@trigger.dev/build": 4.4.3
+  "@trigger.dev/sdk": 4.4.3
+  "@types/node": ^25.5.0
+  concurrently: ^9.2.1
+  drizzle-kit: ^0.31.10
+  tsx: ^4.21.0
+  typescript: ^6.0.2
+  vite: npm:@voidzero-dev/vite-plus-core@latest
+  vite-plus: ^0.1.14
+  vitest: npm:@voidzero-dev/vite-plus-test@latest
+
+catalogMode: prefer
+
+overrides:
+  vite: "catalog:"
+  vitest: "catalog:"
+
+peerDependencyRules:
+  allowAny:
+    - vite
+    - vitest
+  allowedVersions:
+    vite: "*"
+    vitest: "*"

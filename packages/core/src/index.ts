@@ -22,6 +22,10 @@ export const createSentinelError = (options: {
 let workspaceEnvLoaded = false;
 
 const isWorkspaceRoot = (directoryPath: string) => {
+  if (existsSync(path.join(directoryPath, "pnpm-workspace.yaml"))) {
+    return true;
+  }
+
   const packageJsonPath = path.join(directoryPath, "package.json");
 
   if (!existsSync(packageJsonPath)) {
@@ -29,9 +33,15 @@ const isWorkspaceRoot = (directoryPath: string) => {
   }
 
   try {
-    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8")) as {
+      packageManager?: string;
+      workspaces?: unknown;
+    };
 
-    return Array.isArray(packageJson.workspaces);
+    return (
+      Array.isArray(packageJson.workspaces) ||
+      packageJson.packageManager?.startsWith("pnpm@") === true
+    );
   } catch {
     return false;
   }
@@ -66,10 +76,7 @@ export const loadWorkspaceEnv = (startDirectory = process.cwd()) => {
     return;
   }
 
-  const envFilePaths = [
-    path.join(workspaceRoot, ".env"),
-    path.join(workspaceRoot, ".env.local"),
-  ];
+  const envFilePaths = [path.join(workspaceRoot, ".env"), path.join(workspaceRoot, ".env.local")];
 
   for (const envFilePath of envFilePaths) {
     if (!existsSync(envFilePath)) {
@@ -91,9 +98,7 @@ export const withEnvConfig = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
   Effect.sync(() => loadWorkspaceEnv()).pipe(
     Effect.andThen(Effect.sync(() => environmentConfigProvider())),
     Effect.flatMap((configProvider) =>
-      effect.pipe(
-        Effect.provideService(ConfigProvider.ConfigProvider, configProvider),
-      ),
+      effect.pipe(Effect.provideService(ConfigProvider.ConfigProvider, configProvider)),
     ),
   );
 
@@ -103,8 +108,7 @@ export const makeNodeRuntime = <R, E>(layer: Layer.Layer<R, E>) =>
 export const runNodeMain = <A, E>(effect: Effect.Effect<A, E>) =>
   NodeRuntime.runMain(withEnvConfig(effect));
 
-export const resolvePackageDir = (moduleUrl: string) =>
-  fileURLToPath(new URL("..", moduleUrl));
+export const resolvePackageDir = (moduleUrl: string) => fileURLToPath(new URL("..", moduleUrl));
 
 export const isDirectExecution = (moduleUrl: string) => {
   const entrypoint = process.argv[1];

@@ -52,6 +52,7 @@
     <a
       class="rounded-full bg-stone-950 px-4 py-2 text-sm font-medium text-stone-50 transition hover:bg-stone-800"
       href="/create"
+      style="color: #fff"
     >
       New page
     </a>

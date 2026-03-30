@@ -76,10 +76,7 @@ export const getGeneratedPageBundle = async (input: {
 }) => {
   // TODO: This currently runs same-origin with the dashboard in dev.
   // Split this runtime onto a dedicated origin before hardening production sandboxing.
-  const normalized = normalizeVersionInput(
-    input.versionId,
-    new URLSearchParams(),
-  );
+  const normalized = normalizeVersionInput(input.versionId, new URLSearchParams());
   const convex = getConvexClient();
   const payload = await convex.query(api.pages.getRuntimePage, {
     slug: input.slug,
@@ -167,9 +164,7 @@ export const runGeneratedEndpoint = async (input: {
         JSON.stringify({
           durationMs: Date.now() - startedAt,
           errorMessage:
-            cause instanceof Error
-              ? cause.message
-              : "Unknown runtime function failure.",
+            cause instanceof Error ? cause.message : "Unknown runtime function failure.",
           functionName: name,
           scope: "generated-page.runtime-function",
           slug: input.slug,

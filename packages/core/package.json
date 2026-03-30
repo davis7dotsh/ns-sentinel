@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./register-env": "./src/register-env.ts"
   },
   "scripts": {
     "check": "tsc --noEmit"

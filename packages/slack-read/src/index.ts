@@ -157,9 +157,7 @@ export class SlackReader extends ServiceMap.Service<
   );
 }
 
-export const layer = SlackReader.layer.pipe(
-  Layer.provide(SlackReadConfig.layer),
-);
+export const layer = SlackReader.layer.pipe(Layer.provide(SlackReadConfig.layer));
 
 export const program = Effect.gen(function* () {
   const slack = yield* SlackReader;

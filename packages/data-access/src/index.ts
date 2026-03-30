@@ -1,11 +1,5 @@
 import { Data, Effect } from "effect";
-import {
-  Database,
-  desc,
-  inArray,
-  layer as databaseLayer,
-  schema,
-} from "@ns-sentinel/db";
+import { Database, desc, inArray, layer as databaseLayer, schema } from "@ns-sentinel/db";
 
 class DataAccessError extends Data.TaggedError("DataAccessError")<{
   readonly message: string;
@@ -23,9 +17,8 @@ const getYoutubeChannelUrl = (channel: {
     ? `https://www.youtube.com/${channel.ytCustomUrl.replace(/^@?/u, "@")}`
     : `https://www.youtube.com/channel/${channel.ytChannelId}`;
 
-const runDataAccessEffect = <A>(
-  effect: Effect.Effect<A, DataAccessError, Database>,
-) => Effect.runPromise(effect.pipe(Effect.provide(databaseLayer)));
+const runDataAccessEffect = <A>(effect: Effect.Effect<A, DataAccessError, Database>) =>
+  Effect.runPromise(effect.pipe(Effect.provide(databaseLayer)));
 
 export const getGeneratedChannelsCatalogData = () =>
   runDataAccessEffect(
@@ -34,9 +27,7 @@ export const getGeneratedChannelsCatalogData = () =>
       const channels = yield* Effect.tryPromise({
         try: () =>
           database.db.query.channels.findMany({
-            orderBy: (channels, { desc }) => [
-              desc(channels.lastYoutubeSyncedAt),
-            ],
+            orderBy: (channels, { desc }) => [desc(channels.lastYoutubeSyncedAt)],
           }),
         catch: (cause) =>
           new DataAccessError({
@@ -68,9 +59,7 @@ export const getLatestGeneratedChannelOverviewData = () =>
       const channel = yield* Effect.tryPromise({
         try: () =>
           database.db.query.channels.findFirst({
-            orderBy: (channels, { desc }) => [
-              desc(channels.lastYoutubeSyncedAt),
-            ],
+            orderBy: (channels, { desc }) => [desc(channels.lastYoutubeSyncedAt)],
           }),
         catch: (cause) =>
           new DataAccessError({
@@ -131,9 +120,7 @@ export const getLatestGeneratedChannelOverviewData = () =>
                     viewCount: schema.ytVideoMetricsSnapshots.viewCount,
                   })
                   .from(schema.ytVideoMetricsSnapshots)
-                  .where(
-                    inArray(schema.ytVideoMetricsSnapshots.videoId, videoIds),
-                  )
+                  .where(inArray(schema.ytVideoMetricsSnapshots.videoId, videoIds))
                   .orderBy(desc(schema.ytVideoMetricsSnapshots.capturedAt)),
               catch: (cause) =>
                 new DataAccessError({

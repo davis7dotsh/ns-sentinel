@@ -1,7 +1,4 @@
-import {
-  copyGeneratedApiHeaders,
-  fetchGeneratedApi,
-} from "$lib/server/generated-api";
+import { copyGeneratedApiHeaders, fetchGeneratedApi } from "$lib/server/generated-api";
 
 const handleRequest = async ({
   params,
@@ -19,12 +16,9 @@ const handleRequest = async ({
     `/sandbox-api/${params.slug}/${params.endpointSlug}`,
     {
       body:
-        request.method === "GET" || request.method === "HEAD"
-          ? undefined
-          : await request.text(),
+        request.method === "GET" || request.method === "HEAD" ? undefined : await request.text(),
       headers: {
-        "Content-Type":
-          request.headers.get("content-type") ?? "application/json",
+        "Content-Type": request.headers.get("content-type") ?? "application/json",
       },
       method: request.method,
     },

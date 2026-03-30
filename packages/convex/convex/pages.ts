@@ -2,18 +2,8 @@ import type { IndexRangeBuilder } from "convex/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
-import { action, internalMutation, query } from "./_generated/server";
-import {
-  privateAction,
-  privateMutation,
-  privateQuery,
-} from "./private/helpers";
-
-const generationStatus = v.union(
-  v.literal("working"),
-  v.literal("ready"),
-  v.literal("error"),
-);
+import { internalMutation, query } from "./_generated/server";
+import { privateAction, privateMutation, privateQuery } from "./private/helpers";
 
 const slugify = (value: string) =>
   value
@@ -29,15 +19,12 @@ const getInitialTitle = (prompt: string) => {
 };
 
 const bySlug =
-  (slug: string) =>
-  (query: IndexRangeBuilder<Doc<"pages">, ["slug", "_creationTime"]>) =>
+  (slug: string) => (query: IndexRangeBuilder<Doc<"pages">, ["slug", "_creationTime"]>) =>
     query.eq("slug", slug);
 
 const byPageId =
   (pageId: Id<"pages">) =>
-  (
-    query: IndexRangeBuilder<Doc<"pageVersions">, ["pageId", "_creationTime"]>,
-  ) =>
+  (query: IndexRangeBuilder<Doc<"pageVersions">, ["pageId", "_creationTime"]>) =>
     query.eq("pageId", pageId);
 
 export const getPageView = query({
@@ -46,10 +33,7 @@ export const getPageView = query({
     versionId: v.optional(v.id("pageVersions")),
   },
   handler: async (ctx, args) => {
-    const page = await ctx.db
-      .query("pages")
-      .withIndex("by_slug", bySlug(args.slug))
-      .unique();
+    const page = await ctx.db.query("pages").withIndex("by_slug", bySlug(args.slug)).unique();
 
     if (!page) {
       return null;
@@ -138,10 +122,7 @@ export const getRuntimePage = privateQuery({
     versionId: v.optional(v.id("pageVersions")),
   },
   handler: async (ctx, args) => {
-    const page = await ctx.db
-      .query("pages")
-      .withIndex("by_slug", bySlug(args.slug))
-      .unique();
+    const page = await ctx.db.query("pages").withIndex("by_slug", bySlug(args.slug)).unique();
 
     if (!page) {
       return null;
@@ -216,9 +197,7 @@ export const getGenerationContext = privateQuery({
       throw new Error("Page not found.");
     }
 
-    const baseVersion = version.baseVersionId
-      ? await ctx.db.get(version.baseVersionId)
-      : null;
+    const baseVersion = version.baseVersionId ? await ctx.db.get(version.baseVersionId) : null;
 
     return {
       page: {
@@ -259,9 +238,7 @@ export const createPage = privateMutation({
     let slug = baseSlug;
     let suffix = 2;
 
-    while (
-      await ctx.db.query("pages").withIndex("by_slug", bySlug(slug)).unique()
-    ) {
+    while (await ctx.db.query("pages").withIndex("by_slug", bySlug(slug)).unique()) {
       slug = `${baseSlug}-${suffix}`;
       suffix += 1;
     }
@@ -463,22 +440,12 @@ export const storeVersionArtifacts = privateAction({
     versionId: v.id("pageVersions"),
   },
   handler: async (ctx, args) => {
-    const [htmlBlobId, cssBlobId, jsBlobId, endpointBlobId] = await Promise.all(
-      [
-        ctx.storage.store(
-          new Blob([args.html], { type: "text/html;charset=utf-8" }),
-        ),
-        ctx.storage.store(
-          new Blob([args.css], { type: "text/css;charset=utf-8" }),
-        ),
-        ctx.storage.store(
-          new Blob([args.js], { type: "text/javascript;charset=utf-8" }),
-        ),
-        ctx.storage.store(
-          new Blob([args.endpoint], { type: "text/javascript;charset=utf-8" }),
-        ),
-      ],
-    );
+    const [htmlBlobId, cssBlobId, jsBlobId, endpointBlobId] = await Promise.all([
+      ctx.storage.store(new Blob([args.html], { type: "text/html;charset=utf-8" })),
+      ctx.storage.store(new Blob([args.css], { type: "text/css;charset=utf-8" })),
+      ctx.storage.store(new Blob([args.js], { type: "text/javascript;charset=utf-8" })),
+      ctx.storage.store(new Blob([args.endpoint], { type: "text/javascript;charset=utf-8" })),
+    ]);
 
     await ctx.runMutation(internal.pages.finishVersionInternal, {
       cssBlobId,
