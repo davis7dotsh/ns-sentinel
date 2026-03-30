@@ -1,13 +1,13 @@
 import { Data, Effect } from "effect";
 import { error } from "@sveltejs/kit";
-import { Database, desc, eq, inArray, layer as databaseLayer, schema } from "@ns-sentinel/db";
+import { Database, desc, eq, runtime, schema } from "@ns-sentinel/db";
 
 class DashboardDataError extends Data.TaggedError("DashboardDataError")<{
   readonly message: string;
   readonly cause?: unknown;
 }> {}
 
-const toDisplayCount = (value: bigint | null | undefined) =>
+const toDisplayCount = (value: bigint | string | null | undefined) =>
   value === null || value === undefined ? null : value.toString();
 
 const toDisplayDate = (value: Date | null | undefined) => (value ? value.toISOString() : null);
@@ -29,7 +29,7 @@ const getYoutubeAuthorChannelUrl = (authorChannelId: string | null) =>
   authorChannelId ? `https://www.youtube.com/channel/${authorChannelId}` : null;
 
 const runDashboardEffect = async <A>(effect: Effect.Effect<A, DashboardDataError, Database>) =>
-  Effect.runPromise(effect.pipe(Effect.provide(databaseLayer))).catch((cause) => {
+  runtime.runPromise(effect).catch((cause) => {
     if (
       typeof cause === "object" &&
       cause !== null &&
@@ -50,6 +50,18 @@ export const getChannelsData = () =>
       const channels = yield* Effect.tryPromise({
         try: () =>
           database.db.query.channels.findMany({
+            columns: {
+              id: true,
+              name: true,
+              description: true,
+              avatarUrl: true,
+              ytChannelId: true,
+              ytCustomUrl: true,
+              subscriberCount: true,
+              totalViewCount: true,
+              videoCount: true,
+              lastYoutubeSyncedAt: true,
+            },
             where: (channels, { isNotNull }) => isNotNull(channels.ytChannelId),
             orderBy: (channels, { desc }) => [desc(channels.lastYoutubeSyncedAt)],
           }),
@@ -83,6 +95,18 @@ export const getChannelPageData = (channelId: string) =>
       const channel = yield* Effect.tryPromise({
         try: () =>
           database.db.query.channels.findFirst({
+            columns: {
+              id: true,
+              name: true,
+              description: true,
+              avatarUrl: true,
+              bannerUrl: true,
+              ytChannelId: true,
+              ytCustomUrl: true,
+              subscriberCount: true,
+              totalViewCount: true,
+              videoCount: true,
+            },
             where: (channels, { eq }) => eq(channels.id, channelId),
           }),
         catch: (cause) =>
@@ -99,6 +123,16 @@ export const getChannelPageData = (channelId: string) =>
       const videos = yield* Effect.tryPromise({
         try: () =>
           database.db.query.ytVideos.findMany({
+            columns: {
+              id: true,
+              ytVideoId: true,
+              title: true,
+              description: true,
+              thumbnailUrl: true,
+              publishedAt: true,
+              durationSeconds: true,
+              contentKind: true,
+            },
             where: (ytVideos, { eq }) => eq(ytVideos.channelId, channelId),
             orderBy: (ytVideos, { desc }) => [desc(ytVideos.publishedAt)],
           }),
@@ -114,21 +148,25 @@ export const getChannelPageData = (channelId: string) =>
         videoIds.length === 0
           ? []
           : yield* Effect.tryPromise({
-              try: () =>
-                database.db
-                  .select({
-                    videoId: schema.ytVideoMetricsSnapshots.videoId,
-                    capturedAt: schema.ytVideoMetricsSnapshots.capturedAt,
-                    viewCount: schema.ytVideoMetricsSnapshots.viewCount,
-                    likeCount: schema.ytVideoMetricsSnapshots.likeCount,
-                    commentCount: schema.ytVideoMetricsSnapshots.commentCount,
-                  })
-                  .from(schema.ytVideoMetricsSnapshots)
-                  .where(inArray(schema.ytVideoMetricsSnapshots.videoId, videoIds))
-                  .orderBy(
-                    desc(schema.ytVideoMetricsSnapshots.capturedAt),
-                    desc(schema.ytVideoMetricsSnapshots.videoId),
-                  ),
+              try: () => {
+                return database.client<
+                  {
+                    readonly videoId: string;
+                    readonly viewCount: string | null;
+                    readonly likeCount: string | null;
+                    readonly commentCount: string | null;
+                  }[]
+                >`
+                  select distinct on (video_id)
+                    video_id as "videoId",
+                    view_count as "viewCount",
+                    like_count as "likeCount",
+                    comment_count as "commentCount"
+                  from yt_video_metrics_snapshots
+                  where video_id = any(${database.client.array(videoIds)}::uuid[])
+                  order by video_id, captured_at desc
+                `;
+              },
               catch: (cause) =>
                 new DashboardDataError({
                   message: `Failed to load video metrics for channel "${channelId}".`,
@@ -198,6 +236,12 @@ export const getVideoPageData = (input: { readonly channelId: string; readonly v
       const channel = yield* Effect.tryPromise({
         try: () =>
           database.db.query.channels.findFirst({
+            columns: {
+              id: true,
+              name: true,
+              ytChannelId: true,
+              ytCustomUrl: true,
+            },
             where: (channels, { eq }) => eq(channels.id, input.channelId),
           }),
         catch: (cause) =>
@@ -214,6 +258,19 @@ export const getVideoPageData = (input: { readonly channelId: string; readonly v
       const video = yield* Effect.tryPromise({
         try: () =>
           database.db.query.ytVideos.findFirst({
+            columns: {
+              id: true,
+              ytVideoId: true,
+              title: true,
+              description: true,
+              thumbnailUrl: true,
+              publishedAt: true,
+              durationSeconds: true,
+              categoryId: true,
+              defaultLanguage: true,
+              contentKind: true,
+              tags: true,
+            },
             where: (ytVideos, { and, eq }) =>
               and(eq(ytVideos.id, input.videoId), eq(ytVideos.channelId, input.channelId)),
           }),
@@ -251,6 +308,16 @@ export const getVideoPageData = (input: { readonly channelId: string; readonly v
       const comments = yield* Effect.tryPromise({
         try: () =>
           database.db.query.ytComments.findMany({
+            columns: {
+              id: true,
+              ytCommentId: true,
+              authorDisplayName: true,
+              authorChannelId: true,
+              bodyText: true,
+              likeCount: true,
+              replyCount: true,
+              publishedAt: true,
+            },
             where: (ytComments, { eq }) => eq(ytComments.videoId, input.videoId),
             orderBy: (ytComments, { desc }) => [
               desc(ytComments.likeCount),

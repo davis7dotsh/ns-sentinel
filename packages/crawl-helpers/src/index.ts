@@ -362,37 +362,43 @@ export const syncLatestYoutubeVideos = (options: {
         .map((bundle) => bundle.video.id)
         .filter((videoId) => !existingVideoIds.has(videoId));
 
-      for (const videoId of newVideoIds) {
-        const bundle = yield* youtube.readVideo({
-          videoId,
-          includeComments: true,
-          commentsPerVideo,
-        });
-        const persistedVideoRowId = persistedVideoRowIds.get(videoId);
+      const syncCommentsForVideo = (videoId: string) =>
+        Effect.gen(function* () {
+          const persistedVideoRowId = persistedVideoRowIds.get(videoId);
 
-        if (!persistedVideoRowId) {
-          return yield* Effect.fail(
-            createCrawlHelpersError(
-              "loadPersistedYoutubeVideoRow",
-              `Persisted YouTube video row was not found for "${videoId}".`,
-            ),
-          );
-        }
+          if (!persistedVideoRowId) {
+            return yield* Effect.fail(
+              createCrawlHelpersError(
+                "loadPersistedYoutubeVideoRow",
+                `Persisted YouTube video row was not found for "${videoId}".`,
+              ),
+            );
+          }
 
-        yield* Effect.tryPromise({
-          try: () =>
-            upsertYoutubeComments(database.db, {
-              videoRowId: persistedVideoRowId,
-              comments: bundle.comments,
-            }),
-          catch: (cause) =>
-            createCrawlHelpersError(
-              "upsertYoutubeComments",
-              `Failed to persist comments for "${videoId}".`,
-              cause,
-            ),
+          const bundle = yield* youtube.readVideo({
+            videoId,
+            includeComments: true,
+            commentsPerVideo,
+          });
+
+          yield* Effect.tryPromise({
+            try: () =>
+              upsertYoutubeComments(database.db, {
+                videoRowId: persistedVideoRowId,
+                comments: bundle.comments,
+              }),
+            catch: (cause) =>
+              createCrawlHelpersError(
+                "upsertYoutubeComments",
+                `Failed to persist comments for "${videoId}".`,
+                cause,
+              ),
+          });
         });
-      }
+
+      yield* Effect.forEach(newVideoIds, syncCommentsForVideo, {
+        concurrency: 30,
+      });
 
       yield* Effect.tryPromise({
         try: () =>

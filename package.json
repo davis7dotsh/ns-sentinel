@@ -10,6 +10,7 @@
     "db:generate": "vpx drizzle-kit generate --config=packages/db/drizzle.config.ts",
     "db:push": "vpx drizzle-kit push --config=packages/db/drizzle.config.ts",
     "db:studio": "vpx drizzle-kit studio --config=packages/db/drizzle.config.ts",
+    "db:seed": "vp run db:seed:youtube-channel",
     "db:seed:youtube-channel": "vp run @ns-sentinel/crawl-helpers#seed:youtube-channel",
     "dev:dashboard": "vp run dashboard#dev",
     "dev:trigger": "vpx trigger.dev@latest dev",

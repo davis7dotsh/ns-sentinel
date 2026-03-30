@@ -75,6 +75,7 @@ export const ytVideos = pgTable(
   (table) => [
     index("yt_videos_channel_id_idx").on(table.channelId),
     index("yt_videos_published_at_idx").on(table.publishedAt),
+    index("yt_videos_channel_published_at_idx").on(table.channelId, table.publishedAt),
   ],
 );
 
@@ -123,6 +124,11 @@ export const ytComments = pgTable(
   (table) => [
     index("yt_comments_video_id_idx").on(table.videoId),
     index("yt_comments_published_at_idx").on(table.publishedAt),
+    index("yt_comments_video_like_published_idx").on(
+      table.videoId,
+      table.likeCount,
+      table.publishedAt,
+    ),
   ],
 );
 

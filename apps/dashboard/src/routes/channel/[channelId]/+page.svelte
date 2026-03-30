@@ -15,7 +15,7 @@
 
 {#if channelPage.ready}
   <section class="space-y-6">
-    <div class="space-y-4 border-b border-stone-200/80 pb-6">
+    <div class="space-y-5 border-b border-stone-200/80 pb-6">
       <a class="text-sm text-stone-500 transition hover:text-stone-800" href="/"
         >&larr; Channels</a
       >
