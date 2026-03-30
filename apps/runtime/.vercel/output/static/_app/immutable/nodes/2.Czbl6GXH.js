@@ -1,1 +1,0 @@
-import{b as e,f as t,m as n,s as r,w as i}from"../chunks/CN0zbodA.js";import"../chunks/DEDqjojZ.js";import"../chunks/Byl_m9up.js";var a=n(`<p>Sentinel Runtime</p>`);function o(n){var o=a();r(`1uha8ag`,t=>{e(()=>{i.title=`Sentinel Runtime`})}),t(n,o)}export{o as component};

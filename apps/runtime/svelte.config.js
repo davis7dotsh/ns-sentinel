@@ -5,6 +5,7 @@ const config = {
   preprocess: vitePreprocess(),
   kit: {
     adapter: adapter(),
+    outDir: "svelte-kit",
   },
 };
 
