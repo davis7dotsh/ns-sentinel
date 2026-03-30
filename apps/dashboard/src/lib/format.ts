@@ -31,6 +31,18 @@ export const formatDate = (value: string | null | undefined) => {
   }).format(new Date(value));
 };
 
+export const formatTimestamp = (value: number | null | undefined) => {
+  if (!value) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value));
+};
+
 export const formatDuration = (seconds: number | null | undefined) => {
   if (!seconds || seconds < 1) {
     return "0:00";

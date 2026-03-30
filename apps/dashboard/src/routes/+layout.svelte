@@ -10,8 +10,13 @@
     };
   }>();
 
-  const isGeneratedRoute = $derived(page.url.pathname.startsWith("/gen/"));
-  const isCreateRoute = $derived(page.url.pathname === "/create");
+  const pathname = $derived(page.url.pathname);
+  const isGeneratedRoute = $derived(pathname.startsWith("/gen/"));
+  const isCreateRoute = $derived(pathname === "/create");
+  const isPagesRoute = $derived(pathname === "/pages");
+  const showFab = $derived(
+    !isGeneratedRoute && !isCreateRoute && !isPagesRoute,
+  );
   const shellClassName = $derived(
     isGeneratedRoute
       ? "mx-auto flex min-h-screen max-w-6xl flex-col px-5 pt-8 sm:px-8"
@@ -23,12 +28,34 @@
 <ConvexWrapper convexUrl={data.convexUrl}>
   <div class={shellClassName}>
     <header
-      class="mb-10 flex items-baseline justify-between border-b border-stone-300/80 pb-4"
+      class="mb-8 flex items-baseline justify-between border-b border-stone-300/60 pb-3"
     >
-      <a class="text-sm uppercase tracking-[0.28em] text-stone-600" href="/">
-        Sentinel
-      </a>
-      <p class="text-sm text-stone-500">dashboard</p>
+      <div class="flex items-baseline gap-6">
+        <a class="text-sm uppercase tracking-[0.28em] text-stone-600" href="/">
+          Sentinel
+        </a>
+        <nav class="flex items-baseline gap-4">
+          <a
+            class="text-sm transition {pathname === '/' ||
+            pathname.startsWith('/channel')
+              ? 'text-stone-900 font-medium'
+              : 'text-stone-500 hover:text-stone-800'}"
+            href="/"
+          >
+            Channels
+          </a>
+          <a
+            class="text-sm transition {pathname === '/pages' ||
+            pathname.startsWith('/gen/') ||
+            pathname === '/create'
+              ? 'text-stone-900 font-medium'
+              : 'text-stone-500 hover:text-stone-800'}"
+            href="/pages"
+          >
+            Pages
+          </a>
+        </nav>
+      </div>
     </header>
 
     <div class={contentClassName}>
@@ -36,10 +63,10 @@
     </div>
   </div>
 
-  {#if !isGeneratedRoute && !isCreateRoute}
+  {#if showFab}
     <a
       aria-label="Create generated page"
-      class="fixed bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-stone-950 text-3xl leading-none text-white no-underline shadow-[0_18px_40px_rgba(28,25,23,0.28)] transition hover:bg-stone-800"
+      class="fixed bottom-6 right-6 z-20 flex h-12 w-12 items-center justify-center rounded-full bg-stone-950 text-2xl leading-none text-white no-underline shadow-[0_12px_32px_rgba(28,25,23,0.24)] transition hover:bg-stone-800"
       href="/create"
     >
       <span class="font-medium text-white">+</span>

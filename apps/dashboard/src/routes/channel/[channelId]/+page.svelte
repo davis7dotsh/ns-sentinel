@@ -14,9 +14,11 @@
 </svelte:head>
 
 {#if channelPage.ready}
-  <section class="space-y-8">
-    <div class="space-y-4 border-b border-stone-300/80 pb-6">
-      <a class="text-sm text-stone-500" href="/">Back to channels</a>
+  <section class="space-y-6">
+    <div class="space-y-4 border-b border-stone-200/80 pb-6">
+      <a class="text-sm text-stone-500 transition hover:text-stone-800" href="/"
+        >&larr; Channels</a
+      >
 
       <div class="flex items-start gap-4">
         <Avatar
@@ -26,9 +28,9 @@
         />
 
         <div class="space-y-2">
-          <h1 class="text-3xl font-semibold tracking-tight text-stone-950">
+          <h1 class="text-2xl font-semibold tracking-tight text-stone-950">
             <a
-              class="underline decoration-stone-300 underline-offset-6 hover:decoration-stone-900"
+              class="transition hover:text-stone-700"
               href={channelPage.current.channel.youtubeUrl}
               rel="noreferrer"
               target="_blank"
@@ -36,25 +38,18 @@
               {channelPage.current.channel.name}
             </a>
           </h1>
-          <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-600">
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-500">
             <span>
               {formatCount(channelPage.current.channel.subscriberCount)} subs
             </span>
             <span>{channelPage.current.channel.videoCount ?? 0} videos</span>
             {#if channelPage.current.channel.ytCustomUrl}
-              <a
-                class="underline decoration-stone-300 underline-offset-4 hover:decoration-stone-700"
-                href={channelPage.current.channel.youtubeUrl}
-                rel="noreferrer"
-                target="_blank"
-              >
-                {channelPage.current.channel.ytCustomUrl}
-              </a>
+              <span>{channelPage.current.channel.ytCustomUrl}</span>
             {/if}
           </div>
           {#if channelPage.current.channel.description}
             <RichText
-              class="max-w-3xl text-sm leading-6 text-stone-600"
+              class="max-w-3xl text-sm leading-6 text-stone-500"
               text={channelPage.current.channel.description}
             />
           {/if}
@@ -62,13 +57,13 @@
       </div>
     </div>
 
-    <div class="space-y-1">
+    <div class="divide-y divide-stone-200/80">
       {#each channelPage.current.videos as video (video.id)}
         <article
-          class="grid gap-4 border-b border-stone-200/80 py-4 sm:grid-cols-[13rem_minmax(0,1fr)_auto]"
+          class="grid items-start gap-4 py-4 sm:grid-cols-[13rem_minmax(0,1fr)_auto]"
         >
           <a
-            class="relative aspect-video overflow-hidden rounded-sm bg-stone-200 transition hover:opacity-95"
+            class="relative aspect-video overflow-hidden rounded-lg bg-stone-200"
             href={`/channel/${channelId}/video/${video.id}`}
           >
             {#if video.thumbnailUrl}
@@ -79,20 +74,20 @@
               />
             {/if}
             <span
-              class="absolute bottom-2 right-2 bg-stone-950/80 px-2 py-1 text-xs text-stone-50"
+              class="absolute bottom-1.5 right-1.5 rounded bg-stone-950/80 px-1.5 py-0.5 text-xs text-stone-50"
             >
               {formatDuration(video.durationSeconds)}
             </span>
           </a>
 
           <a
-            class="min-w-0 space-y-2 transition hover:bg-stone-50/80"
+            class="min-w-0 space-y-1.5"
             href={`/channel/${channelId}/video/${video.id}`}
           >
-            <h2 class="line-clamp-2 text-lg font-medium text-stone-950">
+            <h2 class="line-clamp-2 text-base font-medium text-stone-950">
               {video.title}
             </h2>
-            <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-stone-600">
+            <div class="flex flex-wrap gap-x-3 gap-y-1 text-sm text-stone-500">
               <span>{formatCount(video.stats.viewCount)} views</span>
               <span>{formatCount(video.stats.likeCount)} likes</span>
               <span>{formatCount(video.stats.commentCount)} comments</span>

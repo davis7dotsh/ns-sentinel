@@ -103,6 +103,35 @@ export const getPageView = query({
   },
 });
 
+export const listPages = query({
+  args: {},
+  handler: async (ctx) => {
+    const pages = await ctx.db.query("pages").collect();
+
+    const sorted = [...pages].sort((a, b) => b.updatedAt - a.updatedAt);
+
+    const results = await Promise.all(
+      sorted.map(async (page) => {
+        const currentVersion = page.currentVersionId
+          ? await ctx.db.get(page.currentVersionId)
+          : null;
+
+        return {
+          id: page._id,
+          slug: page.slug,
+          title: page.title,
+          createdAt: page.createdAt,
+          updatedAt: page.updatedAt,
+          latestVersionNumber: page.latestVersionNumber,
+          currentVersionStatus: currentVersion?.status ?? null,
+        };
+      }),
+    );
+
+    return results;
+  },
+});
+
 export const getRuntimePage = privateQuery({
   args: {
     slug: v.string(),
