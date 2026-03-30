@@ -1,8 +1,11 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
+  import type { PageData } from "./$types";
+
+  let { data }: { data: PageData } = $props();
 
   let prompt = $state(
-    "Create a page that highlights the latest YouTube videos and top X posts for the most recently synced channel.",
+    "Create a page that highlights the latest YouTube videos and top comments for the most recently synced channel.",
   );
   let errorMessage = $state<string | null>(null);
   let isSubmitting = $state(false);
@@ -65,7 +68,8 @@
       <p class="max-w-2xl text-sm leading-6 text-stone-600">
         This creates a Convex-backed page record, kicks off a Trigger workflow,
         and streams the final iframe version back into the dashboard once the
-        generated artifacts are ready.
+        generated artifacts are ready. Generated pages can only query data
+        through the runtime functions listed below.
       </p>
     </div>
 
@@ -101,5 +105,80 @@
         </button>
       </div>
     </div>
+
+    <section
+      class="space-y-4 rounded-[1.5rem] border border-stone-300/70 bg-stone-50/75 p-5"
+    >
+      <div class="space-y-2">
+        <p class="text-sm font-medium text-stone-900">
+          Available runtime functions
+        </p>
+        <p class="text-sm leading-6 text-stone-600">
+          The model can only build generated endpoints around these functions,
+          so this is the clearest picture of what a custom page can and cannot
+          load under the hood.
+        </p>
+      </div>
+
+      <div class="space-y-3">
+        {#each data.runtimeFunctions as runtimeFunction (runtimeFunction.name)}
+          <details
+            class="rounded-[1.25rem] border border-stone-300/70 bg-white/80 p-4"
+          >
+            <summary
+              class="flex cursor-pointer list-none items-center justify-between gap-4"
+            >
+              <div class="space-y-1">
+                <p class="text-sm font-medium text-stone-900">
+                  {runtimeFunction.name}
+                </p>
+                <p class="text-sm leading-6 text-stone-600">
+                  {runtimeFunction.description}
+                </p>
+              </div>
+              <span class="text-xs uppercase tracking-[0.18em] text-stone-500">
+                Advanced fields
+              </span>
+            </summary>
+
+            <div class="mt-4 space-y-3 border-t border-stone-200 pt-4">
+              {#if runtimeFunction.args.length === 0}
+                <p class="text-sm text-stone-600">
+                  This function does not take any arguments.
+                </p>
+              {:else}
+                {#each runtimeFunction.args as arg (arg.name)}
+                  <div class="rounded-2xl bg-stone-50 px-4 py-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <code class="text-sm font-medium text-stone-900"
+                        >{arg.name}</code
+                      >
+                      <span
+                        class="text-xs uppercase tracking-[0.16em] text-stone-500"
+                      >
+                        {arg.type}
+                      </span>
+                      <span
+                        class="text-xs uppercase tracking-[0.16em] text-stone-500"
+                      >
+                        {arg.required ? "Required" : "Optional"}
+                      </span>
+                      {#if arg.defaultValue}
+                        <span class="text-xs text-stone-500">
+                          Default: {arg.defaultValue}
+                        </span>
+                      {/if}
+                    </div>
+                    <p class="mt-2 text-sm leading-6 text-stone-600">
+                      {arg.description}
+                    </p>
+                  </div>
+                {/each}
+              {/if}
+            </div>
+          </details>
+        {/each}
+      </div>
+    </section>
   </div>
 </section>

@@ -15,6 +15,7 @@
     "@ns-sentinel/data-access": "workspace:*",
     "@ns-sentinel/db": "workspace:*",
     "@ns-sentinel/page-agent": "workspace:*",
+    "@ns-sentinel/runtime-functions": "workspace:*",
     "@ns-sentinel/youtube-read": "workspace:*",
     "@trigger.dev/sdk": "4.4.3",
     "@upstash/box": "^0.1.30",

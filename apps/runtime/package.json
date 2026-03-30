@@ -13,6 +13,7 @@
     "@ns-sentinel/data-access": "workspace:*",
     "@ns-sentinel/db": "workspace:*",
     "@ns-sentinel/runtime-core": "workspace:*",
+    "@ns-sentinel/runtime-functions": "workspace:*",
     "@ns-sentinel/trigger": "workspace:*",
     "@sveltejs/adapter-vercel": "^6.3.3",
     "@sveltejs/kit": "^2.55.0",

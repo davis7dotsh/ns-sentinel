@@ -2,10 +2,7 @@ import { env } from "$env/dynamic/private";
 import { createConvexServerClient } from "@ns-sentinel/convex";
 import { api } from "@ns-sentinel/convex/api";
 import type { Id } from "@ns-sentinel/convex/data-model";
-import {
-  getGeneratedChannelsCatalogData,
-  getLatestGeneratedChannelOverviewData,
-} from "@ns-sentinel/data-access";
+import { callRuntimeFunction } from "@ns-sentinel/runtime-functions";
 
 const getConvexClient = () => {
   const convexUrl = env.CONVEX_URL?.trim();
@@ -69,7 +66,7 @@ const getAsyncFunction = () =>
   Object.getPrototypeOf(async function placeholder() {}).constructor as new (
     ...args: string[]
   ) => (ctx: {
-    fetchJson: (path: string) => Promise<unknown>;
+    callFunction: (name: string, args: unknown) => Promise<unknown>;
     searchParams: URLSearchParams;
   }) => Promise<unknown>;
 
@@ -144,27 +141,52 @@ export const runGeneratedEndpoint = async (input: {
   if (endpointSource === null) {
     return null;
   }
+  const callFunction = async (name: string, args: unknown) => {
+    const startedAt = Date.now();
 
-  const allowedPaths = new Set([
-    "/internal/read/channels",
-    "/internal/read/channels/latest/overview",
-  ]);
+    try {
+      const result = await callRuntimeFunction({
+        args,
+        name,
+      });
 
-  const fetchJson = async (path: string) => {
-    if (!allowedPaths.has(path)) {
-      throw new Error(`The generated endpoint cannot access "${path}".`);
+      console.log(
+        JSON.stringify({
+          durationMs: Date.now() - startedAt,
+          functionName: name,
+          scope: "generated-page.runtime-function",
+          slug: input.slug,
+          timestamp: new Date().toISOString(),
+          versionId: payload.version._id,
+        }),
+      );
+
+      return result;
+    } catch (cause) {
+      console.error(
+        JSON.stringify({
+          durationMs: Date.now() - startedAt,
+          errorMessage:
+            cause instanceof Error
+              ? cause.message
+              : "Unknown runtime function failure.",
+          functionName: name,
+          scope: "generated-page.runtime-function",
+          slug: input.slug,
+          timestamp: new Date().toISOString(),
+          versionId: payload.version._id,
+        }),
+      );
+
+      throw cause;
     }
-
-    return path === "/internal/read/channels"
-      ? getGeneratedChannelsCatalogData()
-      : getLatestGeneratedChannelOverviewData();
   };
 
   const AsyncFunction = getAsyncFunction();
   const execute = new AsyncFunction("ctx", endpointSource);
 
   return execute({
-    fetchJson,
+    callFunction,
     searchParams: normalized.searchParams,
   });
 };

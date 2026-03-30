@@ -11,6 +11,10 @@ import {
   type Message,
   type Model,
 } from "@mariozechner/pi-ai";
+import type {
+  RuntimeFunctionExample,
+  RuntimeFunctionMetadata,
+} from "@ns-sentinel/runtime-functions";
 import { GeneratedPageArtifactsSchema } from "@ns-sentinel/runtime-core";
 
 const SYSTEM_PROMPT = `
@@ -43,11 +47,10 @@ Rules:
 - No external scripts, fonts, eval, Function, dynamic import, or off-origin network calls.
 - The endpoint must return JSON-serializable data only.
 - The endpoint can use:
-  - ctx.fetchJson(path)
+  - ctx.callFunction(name, args)
   - ctx.searchParams
-- Allowed fetchJson paths:
-  - /internal/read/channels
-  - /internal/read/channels/latest/overview
+- Use only the runtime functions listed in the user message.
+- The endpoint may call multiple runtime functions and combine their results.
 - Generate the whole version in one shot.
 `.trim();
 
@@ -112,8 +115,9 @@ const stripCodeFences = (value: string) => {
 };
 
 export const generatePageArtifacts = async (input: {
-  readonly latestOverviewSample: unknown;
   readonly prompt: string;
+  readonly runtimeFunctionExamples: readonly RuntimeFunctionExample[];
+  readonly runtimeFunctions: readonly RuntimeFunctionMetadata[];
   readonly selectedVersion: {
     readonly css: string | null;
     readonly endpoint: string | null;
@@ -124,7 +128,6 @@ export const generatePageArtifacts = async (input: {
     readonly versionNumber: number;
   } | null;
   readonly slug: string;
-  readonly channelsSample: unknown;
   readonly versionId: string;
 }) => {
   const model = resolveModel({
@@ -187,11 +190,11 @@ export const generatePageArtifacts = async (input: {
         `Page slug: ${input.slug}`,
         `Version id: ${input.versionId}`,
         "",
-        "Sample response for /internal/read/channels:",
-        JSON.stringify(input.channelsSample, null, 2),
+        "Available runtime functions:",
+        JSON.stringify(input.runtimeFunctions, null, 2),
         "",
-        "Sample response for /internal/read/channels/latest/overview:",
-        JSON.stringify(input.latestOverviewSample, null, 2),
+        "Example runtime function calls and results:",
+        JSON.stringify(input.runtimeFunctionExamples, null, 2),
         input.selectedVersion
           ? ""
           : "\nThis is the first version for this page. Do not assume any prior implementation.",

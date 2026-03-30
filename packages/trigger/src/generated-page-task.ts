@@ -1,15 +1,9 @@
 import { task } from "@trigger.dev/sdk";
-import {
-  createConvexServerClient,
-  type ConvexServerError,
-} from "@ns-sentinel/convex";
+import { createConvexServerClient } from "@ns-sentinel/convex";
 import { api } from "@ns-sentinel/convex/api";
 import type { Id } from "@ns-sentinel/convex/data-model";
-import {
-  getGeneratedChannelsCatalogData,
-  getLatestGeneratedChannelOverviewData,
-} from "@ns-sentinel/data-access";
 import { generatePageArtifacts } from "@ns-sentinel/page-agent";
+import { getRuntimeFunctionModelContext } from "@ns-sentinel/runtime-functions";
 
 const getRequiredConvexUrl = () => {
   const value = process.env.CONVEX_URL?.trim();
@@ -59,37 +53,27 @@ export const generateGeneratedPageVersionTask = task({
         versionId: payload.versionId,
       });
 
-      const [context, channelsSample, latestOverviewSample] = await Promise.all(
-        [
-          convex.query(api.pages.getGenerationContext, {
-            versionId: payload.versionId,
-          }),
-          getGeneratedChannelsCatalogData(),
-          getLatestGeneratedChannelOverviewData(),
-        ],
-      );
+      const [context, runtimeFunctionModelContext] = await Promise.all([
+        convex.query(api.pages.getGenerationContext, {
+          versionId: payload.versionId,
+        }),
+        getRuntimeFunctionModelContext(),
+      ]);
 
-      logStep("Loaded generation context and samples", {
-        channelCount: channelsSample.length,
+      logStep("Loaded generation context and runtime function docs", {
+        exampleCount: runtimeFunctionModelContext.examples.length,
+        functionCount: runtimeFunctionModelContext.functions.length,
         hasBaseVersion: context.baseVersion !== null,
         pageSlug: context.page.slug,
         promptLength: context.version.prompt.length,
         versionId: payload.versionId,
         versionNumber: context.version.versionNumber,
-        videoSampleCount: latestOverviewSample.videos.length,
-        xPostSampleCount: latestOverviewSample.posts.length,
       });
 
       const artifacts = await generatePageArtifacts({
-        channelsSample: channelsSample.slice(0, 4),
-        latestOverviewSample: latestOverviewSample.channel
-          ? {
-              ...latestOverviewSample,
-              posts: latestOverviewSample.posts.slice(0, 2),
-              videos: latestOverviewSample.videos.slice(0, 2),
-            }
-          : latestOverviewSample,
         prompt: context.version.prompt,
+        runtimeFunctionExamples: runtimeFunctionModelContext.examples,
+        runtimeFunctions: runtimeFunctionModelContext.functions,
         selectedVersion: context.baseVersion
           ? {
               css: context.baseVersion.css,

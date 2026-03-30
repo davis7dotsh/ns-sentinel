@@ -25,6 +25,7 @@
         "@ns-sentinel/convex": "workspace:*",
         "@ns-sentinel/core": "workspace:*",
         "@ns-sentinel/db": "workspace:*",
+        "@ns-sentinel/runtime-functions": "workspace:*",
         "@sveltejs/adapter-vercel": "^6.3.3",
         "@sveltejs/kit": "^2.55.0",
         "@sveltejs/vite-plugin-svelte": "^7.0.0",
@@ -62,6 +63,7 @@
         "@ns-sentinel/data-access": "workspace:*",
         "@ns-sentinel/db": "workspace:*",
         "@ns-sentinel/runtime-core": "workspace:*",
+        "@ns-sentinel/runtime-functions": "workspace:*",
         "@ns-sentinel/trigger": "workspace:*",
         "@sveltejs/adapter-vercel": "^6.3.3",
         "@sveltejs/kit": "^2.55.0",
@@ -168,6 +170,7 @@
         "@mariozechner/pi-agent-core": "^0.63.1",
         "@mariozechner/pi-ai": "^0.63.1",
         "@ns-sentinel/runtime-core": "workspace:*",
+        "@ns-sentinel/runtime-functions": "workspace:*",
         "zod": "^4.3.6",
       },
     },
@@ -175,6 +178,13 @@
       "name": "@ns-sentinel/runtime-core",
       "dependencies": {
         "zod": "^4.3.6",
+      },
+    },
+    "packages/runtime-functions": {
+      "name": "@ns-sentinel/runtime-functions",
+      "dependencies": {
+        "@ns-sentinel/db": "workspace:*",
+        "effect": "4.0.0-beta.41",
       },
     },
     "packages/slack-read": {
@@ -195,6 +205,7 @@
         "@ns-sentinel/data-access": "workspace:*",
         "@ns-sentinel/db": "workspace:*",
         "@ns-sentinel/page-agent": "workspace:*",
+        "@ns-sentinel/runtime-functions": "workspace:*",
         "@ns-sentinel/youtube-read": "workspace:*",
         "@trigger.dev/sdk": "4.4.3",
         "@upstash/box": "^0.1.30",
@@ -431,6 +442,8 @@
     "@ns-sentinel/page-agent": ["@ns-sentinel/page-agent@workspace:packages/page-agent"],
 
     "@ns-sentinel/runtime-core": ["@ns-sentinel/runtime-core@workspace:packages/runtime-core"],
+
+    "@ns-sentinel/runtime-functions": ["@ns-sentinel/runtime-functions@workspace:packages/runtime-functions"],
 
     "@ns-sentinel/slack-read": ["@ns-sentinel/slack-read@workspace:packages/slack-read"],
 

@@ -11,6 +11,7 @@
     "@ns-sentinel/convex": "workspace:*",
     "@ns-sentinel/core": "workspace:*",
     "@ns-sentinel/db": "workspace:*",
+    "@ns-sentinel/runtime-functions": "workspace:*",
     "@sveltejs/adapter-vercel": "^6.3.3",
     "@sveltejs/kit": "^2.55.0",
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
