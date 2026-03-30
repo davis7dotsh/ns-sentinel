@@ -114,6 +114,67 @@ const stripCodeFences = (value: string) => {
     .trim();
 };
 
+const extractJsonObject = (value: string) => {
+  const source = value.trim();
+
+  for (let start = 0; start < source.length; start += 1) {
+    if (source[start] !== "{") {
+      continue;
+    }
+
+    let depth = 0;
+    let isEscaped = false;
+    let isInString = false;
+
+    for (let index = start; index < source.length; index += 1) {
+      const character = source[index];
+
+      if (isInString) {
+        if (isEscaped) {
+          isEscaped = false;
+          continue;
+        }
+
+        if (character === "\\") {
+          isEscaped = true;
+          continue;
+        }
+
+        if (character === '"') {
+          isInString = false;
+        }
+
+        continue;
+      }
+
+      if (character === '"') {
+        isInString = true;
+        continue;
+      }
+
+      if (character === "{") {
+        depth += 1;
+        continue;
+      }
+
+      if (character !== "}") {
+        continue;
+      }
+
+      depth -= 1;
+
+      if (depth === 0) {
+        return source.slice(start, index + 1);
+      }
+    }
+  }
+
+  return source;
+};
+
+const toResponsePreview = (value: string) =>
+  value.replace(/\s+/gu, " ").trim().slice(0, 240);
+
 export const generatePageArtifacts = async (input: {
   readonly prompt: string;
   readonly runtimeFunctionExamples: readonly RuntimeFunctionExample[];
@@ -131,18 +192,20 @@ export const generatePageArtifacts = async (input: {
   readonly versionId: string;
 }) => {
   const model = resolveModel({
-    modelId: "gpt-5.4-mini",
-    provider: "openai",
+    modelId: "claude-sonnet-4-6",
+    provider: "opencode",
   });
 
   if (!model) {
-    throw new Error('Unable to resolve the "openai/gpt-5.4-mini" model.');
+    throw new Error(
+      'Unable to resolve the "opencode/claude-sonnet-4-6" model.',
+    );
   }
 
-  const openAiApiKey = process.env.OPENAI_API_KEY?.trim();
+  const openCodeApiKey = process.env.OPENCODE_API_KEY?.trim();
 
-  if (!openAiApiKey) {
-    throw new Error("Missing OPENAI_API_KEY.");
+  if (!openCodeApiKey) {
+    throw new Error("Missing OPENCODE_API_KEY.");
   }
 
   const selectedVersion = input.selectedVersion;
@@ -224,16 +287,28 @@ export const generatePageArtifacts = async (input: {
             message.role === "assistant" ||
             message.role === "toolResult",
         ),
-      getApiKey: () => openAiApiKey,
+      getApiKey: () => openCodeApiKey,
       model,
       sessionId: input.versionId,
     },
   ).result();
 
   const rawResponse = stripCodeFences(extractAssistantText(finalMessages));
-  const parsed = GeneratedPageArtifactsSchema.safeParse(
-    JSON.parse(rawResponse),
-  );
+  const jsonResponse = extractJsonObject(rawResponse);
+  let payload: unknown;
+
+  try {
+    payload = JSON.parse(jsonResponse);
+  } catch (cause) {
+    const preview = toResponsePreview(rawResponse);
+
+    throw new Error(
+      `The page agent returned invalid JSON. Preview: ${preview}`,
+      { cause: cause instanceof Error ? cause : undefined },
+    );
+  }
+
+  const parsed = GeneratedPageArtifactsSchema.safeParse(payload);
 
   if (!parsed.success) {
     throw new Error("The page agent returned an invalid artifact payload.");
