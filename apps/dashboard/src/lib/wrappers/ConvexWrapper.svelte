@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import { setupConvex } from "convex-svelte";
 
   const props = $props<{
@@ -6,7 +7,7 @@
     convexUrl: string;
   }>();
 
-  setupConvex(props.convexUrl);
+  setupConvex(untrack(() => props.convexUrl));
 </script>
 
 {@render props.children()}
