@@ -165,8 +165,9 @@
 <section class="flex h-full flex-col">
   <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center gap-3">
-      <a class="text-sm text-stone-500 transition hover:text-stone-800" href="/"
-        >&larr;</a
+      <a
+        class="text-sm text-stone-500 transition hover:text-stone-800"
+        href="/pages">&larr;</a
       >
       <div>
         <h1 class="text-lg font-semibold tracking-tight text-stone-950">

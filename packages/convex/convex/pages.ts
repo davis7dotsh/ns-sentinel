@@ -299,6 +299,42 @@ export const createPage = privateMutation({
   },
 });
 
+export const deletePage = privateMutation({
+  args: {
+    pageId: v.id("pages"),
+  },
+  handler: async (ctx, args) => {
+    const page = await ctx.db.get(args.pageId);
+
+    if (!page) {
+      throw new Error("Page not found.");
+    }
+
+    const versions = await ctx.db
+      .query("pageVersions")
+      .withIndex("by_page_id", byPageId(page._id))
+      .collect();
+
+    const blobIds: Id<"_storage">[] = [];
+
+    for (const version of versions) {
+      if (version.htmlBlobId) blobIds.push(version.htmlBlobId);
+      if (version.cssBlobId) blobIds.push(version.cssBlobId);
+      if (version.jsBlobId) blobIds.push(version.jsBlobId);
+      if (version.endpointBlobId) blobIds.push(version.endpointBlobId);
+    }
+
+    for (const blobId of blobIds) {
+      await ctx.storage.delete(blobId);
+    }
+
+    for (const version of versions) {
+      await ctx.db.delete(version._id);
+    }
+    await ctx.db.delete(page._id);
+  },
+});
+
 export const createEditVersion = privateMutation({
   args: {
     baseVersionId: v.id("pageVersions"),

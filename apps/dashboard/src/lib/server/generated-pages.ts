@@ -142,6 +142,14 @@ export const createGeneratedPageEdit = async (input: {
   }
 };
 
+export const deleteGeneratedPage = async (pageId: Id<"pages">) => {
+  const convex = getConvexClient();
+
+  await convex.mutation(api.pages.deletePage, {
+    pageId,
+  });
+};
+
 export const retryGeneratedPageVersion = async (
   versionId: Id<"pageVersions">,
 ) => {
