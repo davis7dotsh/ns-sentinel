@@ -14,7 +14,7 @@ type LiveCrawlerConfig = {
 };
 
 const liveCrawlerTaskId = "youtube-live-crawler.sync-latest";
-const liveCrawlerCron = "*/10 * * * *";
+const liveCrawlerCron = "*/15 * * * *";
 
 const parseNumberEnv = (value: string | undefined, fallback: number) => {
   if (!value) {
@@ -30,7 +30,7 @@ const loadConfig = (): LiveCrawlerConfig => {
   return {
     latestVideoLimit: parseNumberEnv(
       process.env.YOUTUBE_LIVE_CRAWLER_VIDEO_LIMIT,
-      5,
+      20,
     ),
     commentsPerVideo: parseNumberEnv(
       process.env.YOUTUBE_LIVE_CRAWLER_COMMENTS_PER_VIDEO,

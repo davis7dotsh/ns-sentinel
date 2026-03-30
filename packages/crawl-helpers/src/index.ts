@@ -303,7 +303,7 @@ export const syncLatestYoutubeVideos = (options: {
   Effect.gen(function* () {
     const database = yield* Database;
     const youtube = yield* YoutubeReader;
-    const limit = options.limit ?? 10;
+    const limit = options.limit ?? 20;
     const commentsPerVideo = options.commentsPerVideo ?? 200;
 
     const { channel, videos } = yield* youtube.readChannelVideoSummaries({

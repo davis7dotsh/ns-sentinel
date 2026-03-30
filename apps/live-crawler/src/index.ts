@@ -27,7 +27,7 @@ const loadConfig = (): LiveCrawlerConfig => {
   return {
     latestVideoLimit: parseNumberEnv(
       process.env.YOUTUBE_LIVE_CRAWLER_VIDEO_LIMIT,
-      5,
+      20,
     ),
     commentsPerVideo: parseNumberEnv(
       process.env.YOUTUBE_LIVE_CRAWLER_COMMENTS_PER_VIDEO,
@@ -35,7 +35,7 @@ const loadConfig = (): LiveCrawlerConfig => {
     ),
     pollIntervalMs: parseNumberEnv(
       process.env.YOUTUBE_LIVE_CRAWLER_POLL_INTERVAL_MS,
-      600000,
+      900000,
     ),
   };
 };
