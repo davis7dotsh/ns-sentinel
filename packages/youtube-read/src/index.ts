@@ -76,6 +76,7 @@ export type YoutubeVideoRecord = {
   readonly categoryId: string | undefined;
   readonly defaultLanguage: string | undefined;
   readonly contentKind: string;
+  readonly contentType: YoutubeContentType;
   readonly liveBroadcastContent: string | undefined;
   readonly tags: readonly string[] | undefined;
   readonly viewCount: string | undefined;
@@ -103,6 +104,8 @@ export type ReadYoutubeVideoOptions = {
   readonly includeComments?: boolean;
   readonly commentsPerVideo?: number;
 };
+
+export type YoutubeContentType = "livestream" | "short" | "video";
 
 const parseChannelLookupQuery = (query: string | undefined) => {
   if (!query) {
@@ -159,6 +162,36 @@ const parseIsoDurationToSeconds = (isoDuration: string | undefined) => {
   return (
     Number(days) * 24 * 60 * 60 + Number(hours) * 60 * 60 + Number(minutes) * 60 + Number(seconds)
   );
+};
+
+const hasLiveStreamingDetails = (video: YoutubeVideoResource) => {
+  const details = video.liveStreamingDetails;
+
+  return Boolean(
+    details?.actualEndTime ??
+    details?.actualStartTime ??
+    details?.scheduledStartTime ??
+    details?.concurrentViewers,
+  );
+};
+
+const classifyYoutubeContentType = (
+  video: YoutubeVideoResource,
+  durationSeconds: number | undefined,
+): YoutubeContentType => {
+  if (
+    video.snippet?.liveBroadcastContent === "live" ||
+    video.snippet?.liveBroadcastContent === "upcoming" ||
+    hasLiveStreamingDetails(video)
+  ) {
+    return "livestream";
+  }
+
+  if (durationSeconds !== undefined && durationSeconds <= 180) {
+    return "short";
+  }
+
+  return "video";
 };
 
 const createYoutubeError = (operation: string, message: string, cause?: unknown) =>
@@ -297,6 +330,8 @@ const normalizeVideo = (video: YoutubeVideoResource): YoutubeVideoRecord | undef
     return undefined;
   }
 
+  const durationSeconds = parseIsoDurationToSeconds(video.contentDetails?.duration ?? undefined);
+
   return {
     id: videoId,
     channelId: video.snippet?.channelId ?? undefined,
@@ -304,7 +339,7 @@ const normalizeVideo = (video: YoutubeVideoResource): YoutubeVideoRecord | undef
     title,
     description: video.snippet?.description ?? undefined,
     publishedAt,
-    durationSeconds: parseIsoDurationToSeconds(video.contentDetails?.duration ?? undefined),
+    durationSeconds,
     thumbnailUrl: pickBestThumbnailUrl(video.snippet?.thumbnails),
     categoryId: video.snippet?.categoryId ?? undefined,
     defaultLanguage:
@@ -313,6 +348,7 @@ const normalizeVideo = (video: YoutubeVideoResource): YoutubeVideoRecord | undef
       video.snippet?.liveBroadcastContent && video.snippet.liveBroadcastContent !== "none"
         ? video.snippet.liveBroadcastContent
         : "video",
+    contentType: classifyYoutubeContentType(video, durationSeconds),
     liveBroadcastContent: video.snippet?.liveBroadcastContent ?? undefined,
     tags: video.snippet?.tags ?? undefined,
     viewCount: video.statistics?.viewCount ?? undefined,
@@ -484,7 +520,7 @@ const fetchVideosByIds = (youtube: YoutubeApi, videoIds: readonly string[]) =>
       const response = yield* retryYoutubeCall("videos.list", () =>
         youtube.videos.list({
           id: currentIds,
-          part: ["snippet", "statistics", "contentDetails"],
+          part: ["snippet", "statistics", "contentDetails", "liveStreamingDetails"],
           maxResults: currentIds.length,
         }),
       );

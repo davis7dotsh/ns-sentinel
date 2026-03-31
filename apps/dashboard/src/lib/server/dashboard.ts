@@ -132,6 +132,7 @@ export const getChannelPageData = (channelId: string) =>
               publishedAt: true,
               durationSeconds: true,
               contentKind: true,
+              contentType: true,
             },
             where: (ytVideos, { eq }) => eq(ytVideos.channelId, channelId),
             orderBy: (ytVideos, { desc }) => [desc(ytVideos.publishedAt)],
@@ -218,6 +219,7 @@ export const getChannelPageData = (channelId: string) =>
           publishedAt: video.publishedAt.toISOString(),
           durationSeconds: video.durationSeconds,
           contentKind: video.contentKind,
+          contentType: video.contentType,
           youtubeUrl: getYoutubeVideoUrl(video.ytVideoId),
           stats: latestSnapshotByVideoId.get(video.id) ?? {
             viewCount: null,
@@ -269,6 +271,7 @@ export const getVideoPageData = (input: { readonly channelId: string; readonly v
               categoryId: true,
               defaultLanguage: true,
               contentKind: true,
+              contentType: true,
               tags: true,
             },
             where: (ytVideos, { and, eq }) =>
@@ -348,6 +351,7 @@ export const getVideoPageData = (input: { readonly channelId: string; readonly v
           categoryId: video.categoryId,
           defaultLanguage: video.defaultLanguage,
           contentKind: video.contentKind,
+          contentType: video.contentType,
           tags: video.tags ?? [],
           youtubeUrl: getYoutubeVideoUrl(video.ytVideoId),
           stats: {

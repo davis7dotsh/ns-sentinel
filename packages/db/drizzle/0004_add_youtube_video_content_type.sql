@@ -1,0 +1,1 @@
+ALTER TABLE "yt_videos" ADD COLUMN "content_type" varchar(32);

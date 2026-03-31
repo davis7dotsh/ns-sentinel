@@ -1,4 +1,4 @@
-import { eq, inArray, isNotNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { Effect } from "effect";
 import { createSentinelError } from "@ns-sentinel/core";
@@ -11,6 +11,7 @@ import {
 } from "@ns-sentinel/youtube-read";
 
 const crawlHelpersModule = "@ns-sentinel/crawl-helpers";
+const youtubeContentTypeBackfillBatchSize = 100;
 
 type DatabaseClient = ReturnType<typeof drizzle>;
 
@@ -90,6 +91,15 @@ const findExistingYoutubeVideos = (db: DatabaseClient, ytVideoIds: readonly stri
         .from(schema.ytVideos)
         .where(inArray(schema.ytVideos.ytVideoId, [...ytVideoIds]));
 
+const findYoutubeVideosMissingContentType = (db: DatabaseClient, channelId: string) =>
+  db
+    .select({
+      ytVideoId: schema.ytVideos.ytVideoId,
+    })
+    .from(schema.ytVideos)
+    .where(and(eq(schema.ytVideos.channelId, channelId), isNull(schema.ytVideos.contentType)))
+    .limit(youtubeContentTypeBackfillBatchSize);
+
 const upsertYoutubeChannel = async (db: DatabaseClient, channel: YoutubeChannelProfile) => {
   const [row] = await db
     .insert(schema.channels)
@@ -150,6 +160,7 @@ const upsertYoutubeVideoBundle = async (
       categoryId: options.bundle.video.categoryId,
       defaultLanguage: options.bundle.video.defaultLanguage,
       contentKind: options.bundle.video.contentKind,
+      contentType: options.bundle.video.contentType,
       tags: options.bundle.video.tags ? [...options.bundle.video.tags] : undefined,
       rawPayload: options.bundle.video.metadata,
       lastSeenAt: new Date(),
@@ -166,6 +177,7 @@ const upsertYoutubeVideoBundle = async (
         categoryId: options.bundle.video.categoryId,
         defaultLanguage: options.bundle.video.defaultLanguage,
         contentKind: options.bundle.video.contentKind,
+        contentType: options.bundle.video.contentType,
         tags: options.bundle.video.tags ? [...options.bundle.video.tags] : undefined,
         rawPayload: options.bundle.video.metadata,
         lastSeenAt: new Date(),
@@ -356,6 +368,39 @@ export const syncLatestYoutubeVideos = (options: {
         });
 
         persistedVideoRowIds.set(bundle.video.id, videoRowId);
+      }
+
+      const videosMissingContentType = yield* Effect.tryPromise({
+        try: () => findYoutubeVideosMissingContentType(database.db, channelRowId),
+        catch: (cause) =>
+          createCrawlHelpersError(
+            "findYoutubeVideosMissingContentType",
+            `Failed to load videos missing content type for channel "${channel.id}".`,
+            cause,
+          ),
+      });
+
+      if (videosMissingContentType.length > 0) {
+        const backfillBundles = yield* youtube.readVideosByIds({
+          videoIds: videosMissingContentType.map((video) => video.ytVideoId),
+          includeComments: false,
+        });
+
+        for (const bundle of backfillBundles) {
+          yield* Effect.tryPromise({
+            try: () =>
+              upsertYoutubeVideoBundle(database.db, {
+                channelRowId,
+                bundle,
+              }),
+            catch: (cause) =>
+              createCrawlHelpersError(
+                "upsertYoutubeVideoBundle",
+                `Failed to backfill content type for video "${bundle.video.id}".`,
+                cause,
+              ),
+          });
+        }
       }
 
       const newVideoIds = bundles

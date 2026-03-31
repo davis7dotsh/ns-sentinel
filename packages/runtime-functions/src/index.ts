@@ -88,6 +88,7 @@ type VideoSummary = {
   readonly channelId: string;
   readonly commentCount: string | null;
   readonly contentKind: string | null;
+  readonly contentType: string | null;
   readonly description: string | null;
   readonly durationSeconds: number | null;
   readonly id: string;
@@ -223,6 +224,7 @@ const VideoSummarySchema: Schema.Schema<VideoSummary> = Schema.Struct({
   channelId: Schema.String,
   commentCount: Schema.NullOr(Schema.String),
   contentKind: Schema.NullOr(Schema.String),
+  contentType: Schema.NullOr(Schema.String),
   description: Schema.NullOr(Schema.String),
   durationSeconds: Schema.NullOr(Schema.Number),
   id: Schema.String,
@@ -439,6 +441,7 @@ const getVideosDefinition: RuntimeFunctionDefinition<GetVideosArgs, readonly Vid
           channelId: video.channelId,
           commentCount: latestSnapshot?.commentCount ?? null,
           contentKind: video.contentKind,
+          contentType: video.contentType,
           description: video.description,
           durationSeconds: video.durationSeconds,
           id: video.id,

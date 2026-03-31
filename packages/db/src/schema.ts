@@ -63,6 +63,7 @@ export const ytVideos = pgTable(
     categoryId: varchar("category_id", { length: 16 }),
     defaultLanguage: varchar("default_language", { length: 16 }),
     contentKind: varchar("content_kind", { length: 32 }).default("video"),
+    contentType: varchar("content_type", { length: 32 }),
     tags: jsonb("tags").$type<string[]>(),
     rawPayload: jsonb("raw_payload"),
     firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).defaultNow().notNull(),

@@ -5,8 +5,39 @@
   import { getChannelPage } from "$lib/dashboard.remote";
   import { formatCount, formatDate, formatDuration } from "$lib/format";
 
+  const contentTypeOptions = ["all", "video", "short", "livestream"] as const;
+
+  type ContentTypeFilter = (typeof contentTypeOptions)[number];
+  type VideoContentType = Exclude<ContentTypeFilter, "all">;
+
   const channelId = $derived(page.params.channelId ?? "");
   const channelPage = $derived(getChannelPage(channelId));
+  let selectedContentType = $state<ContentTypeFilter>("video");
+  const statsWindowSize = 15;
+
+  const getVideoContentType = (contentType: string | null | undefined): VideoContentType =>
+    contentType === "short" || contentType === "livestream" ? contentType : "video";
+
+  const formatContentTypeLabel = (contentType: ContentTypeFilter) =>
+    contentType === "all" ? "All" : contentType[0].toUpperCase() + contentType.slice(1);
+
+  const filteredVideos = $derived.by(() => {
+    if (!channelPage.ready) {
+      return [];
+    }
+
+    return channelPage.current.videos.filter(
+      (video) =>
+        selectedContentType === "all" || getVideoContentType(video.contentType) === selectedContentType,
+    );
+  });
+  const statsVideos = $derived(filteredVideos.slice(0, statsWindowSize));
+  const statsVideoViews = $derived.by(() =>
+    statsVideos.reduce((total, video) => total + Number(video.stats.viewCount ?? 0), 0),
+  );
+  const statsVideoAverageViews = $derived(
+    statsVideos.length === 0 ? 0 : Math.round(statsVideoViews / statsVideos.length),
+  );
 </script>
 
 <svelte:head>
@@ -55,48 +86,115 @@
           {/if}
         </div>
       </div>
+
+      <div class="grid gap-3 sm:grid-cols-2">
+        <div class="rounded-2xl border border-stone-200/80 bg-stone-50/80 px-4 py-3">
+          <p class="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
+            Avg Views Per Video
+          </p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-stone-950">
+            {formatCount(statsVideoAverageViews)}
+          </p>
+          <p class="mt-1 text-sm text-stone-500">Based on the last {statsVideos.length} videos</p>
+        </div>
+
+        <div class="rounded-2xl border border-stone-200/80 bg-stone-50/80 px-4 py-3">
+          <p class="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
+            Total Views
+          </p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-stone-950">
+            {formatCount(statsVideoViews)}
+          </p>
+          <p class="mt-1 text-sm text-stone-500">Across the last {statsVideos.length} videos</p>
+        </div>
+      </div>
     </div>
 
-    <div class="divide-y divide-stone-200/80">
-      {#each channelPage.current.videos as video (video.id)}
-        <article
-          class="grid items-start gap-4 py-4 sm:grid-cols-[13rem_minmax(0,1fr)_auto]"
-        >
-          <a
-            class="relative aspect-video overflow-hidden rounded-lg bg-stone-200"
-            href={`/channel/${channelId}/video/${video.id}`}
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-center gap-2">
+        {#each contentTypeOptions as contentType (contentType)}
+          <button
+            class={[
+              "rounded-full border px-3 py-1.5 text-sm font-medium transition",
+              selectedContentType === contentType
+                ? "border-stone-900 bg-stone-900 text-stone-50"
+                : "border-stone-200 bg-stone-50 text-stone-600 hover:border-stone-300 hover:text-stone-950",
+            ]}
+            onclick={() => {
+              selectedContentType = contentType;
+            }}
+            type="button"
           >
-            {#if video.thumbnailUrl}
-              <img
-                alt={video.title}
-                class="h-full w-full object-cover"
-                src={video.thumbnailUrl}
-              />
-            {/if}
-            <span
-              class="absolute bottom-1.5 right-1.5 rounded bg-stone-950/80 px-1.5 py-0.5 text-xs text-stone-50"
+            {formatContentTypeLabel(contentType)}
+          </button>
+        {/each}
+      </div>
+
+      {#if filteredVideos.length === 0}
+        <div class="rounded-2xl border border-dashed border-stone-200 bg-stone-50/70 px-4 py-8">
+          <p class="text-sm text-stone-500">
+            No {selectedContentType === "all" ? "" : `${selectedContentType} `}videos found for this
+            filter.
+          </p>
+        </div>
+      {:else}
+        <div class="divide-y divide-stone-200/80">
+          {#each filteredVideos as video (video.id)}
+            <article
+              class="grid items-start gap-4 py-4 sm:grid-cols-[13rem_minmax(0,1fr)_auto]"
             >
-              {formatDuration(video.durationSeconds)}
-            </span>
-          </a>
+              <a
+                class="relative aspect-video overflow-hidden rounded-lg bg-stone-200"
+                href={`/channel/${channelId}/video/${video.id}`}
+              >
+                {#if video.thumbnailUrl}
+                  <img
+                    alt={video.title}
+                    class="h-full w-full object-cover"
+                    src={video.thumbnailUrl}
+                  />
+                {/if}
+                <span
+                  class="absolute bottom-1.5 right-1.5 rounded bg-stone-950/80 px-1.5 py-0.5 text-xs text-stone-50"
+                >
+                  {formatDuration(video.durationSeconds)}
+                </span>
+              </a>
 
-          <a
-            class="min-w-0 space-y-1.5"
-            href={`/channel/${channelId}/video/${video.id}`}
-          >
-            <h2 class="line-clamp-2 text-base font-medium text-stone-950">
-              {video.title}
-            </h2>
-            <div class="flex flex-wrap gap-x-3 gap-y-1 text-sm text-stone-500">
-              <span>{formatCount(video.stats.viewCount)} views</span>
-              <span>{formatCount(video.stats.likeCount)} likes</span>
-              <span>{formatCount(video.stats.commentCount)} comments</span>
-            </div>
-          </a>
+              <a
+                class="min-w-0 space-y-1.5"
+                href={`/channel/${channelId}/video/${video.id}`}
+              >
+                <div class="flex flex-wrap items-center gap-2">
+                  <span
+                    class={[
+                      "rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]",
+                      getVideoContentType(video.contentType) === "livestream"
+                        ? "bg-red-100 text-red-700"
+                        : getVideoContentType(video.contentType) === "short"
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-stone-100 text-stone-600",
+                    ]}
+                  >
+                    {formatContentTypeLabel(getVideoContentType(video.contentType))}
+                  </span>
 
-          <p class="text-sm text-stone-500">{formatDate(video.publishedAt)}</p>
-        </article>
-      {/each}
+                  <h2 class="line-clamp-2 text-base font-medium text-stone-950">
+                    {video.title}
+                  </h2>
+                </div>
+                <div class="flex flex-wrap gap-x-3 gap-y-1 text-sm text-stone-500">
+                  <span>{formatCount(video.stats.viewCount)} views</span>
+                  <span>{formatCount(video.stats.likeCount)} likes</span>
+                  <span>{formatCount(video.stats.commentCount)} comments</span>
+                </div>
+              </a>
+
+              <p class="text-sm text-stone-500">{formatDate(video.publishedAt)}</p>
+            </article>
+          {/each}
+        </div>
+      {/if}
     </div>
   </section>
 {:else}
