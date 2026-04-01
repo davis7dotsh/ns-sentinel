@@ -20,6 +20,26 @@
 
   const formatContentTypeLabel = (contentType: ContentTypeFilter) =>
     contentType === "all" ? "All" : contentType[0].toUpperCase() + contentType.slice(1);
+  const toViewCount = (value: string | number | null | undefined) => Number(value ?? 0);
+  const formatDaysAgo = (value: string | null | undefined) => {
+    if (!value) {
+      return "";
+    }
+
+    const publishedAt = new Date(value);
+    const elapsedMs = Date.now() - publishedAt.getTime();
+    const elapsedDays = Math.max(0, Math.floor(elapsedMs / (1000 * 60 * 60 * 24)));
+
+    if (elapsedDays === 0) {
+      return "Published today";
+    }
+
+    if (elapsedDays === 1) {
+      return "Published 1 day ago";
+    }
+
+    return `Published ${elapsedDays} days ago`;
+  };
 
   const filteredVideos = $derived.by(() => {
     if (!channelPage.ready) {
@@ -38,6 +58,43 @@
   const statsVideoAverageViews = $derived(
     statsVideos.length === 0 ? 0 : Math.round(statsVideoViews / statsVideos.length),
   );
+  const statsVideoExtremes = $derived.by(() => {
+    if (statsVideos.length === 0) {
+      return { lowest: null, highest: null };
+    }
+
+    let lowestVideo = statsVideos[0];
+    let highestVideo = statsVideos[0];
+    let lowestViews = toViewCount(statsVideos[0].stats.viewCount);
+    let highestViews = lowestViews;
+
+    for (const video of statsVideos.slice(1)) {
+      const videoViews = toViewCount(video.stats.viewCount);
+
+      if (videoViews < lowestViews) {
+        lowestVideo = video;
+        lowestViews = videoViews;
+      }
+
+      if (videoViews > highestViews) {
+        highestVideo = video;
+        highestViews = videoViews;
+      }
+    }
+
+    return {
+      lowest: {
+        video: lowestVideo,
+        views: lowestViews,
+        deltaFromAverage: Math.max(statsVideoAverageViews - lowestViews, 0),
+      },
+      highest: {
+        video: highestVideo,
+        views: highestViews,
+        deltaFromAverage: Math.max(highestViews - statsVideoAverageViews, 0),
+      },
+    };
+  });
 </script>
 
 <svelte:head>
@@ -87,7 +144,7 @@
         </div>
       </div>
 
-      <div class="grid gap-3 sm:grid-cols-2">
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-2xl border border-stone-200/80 bg-stone-50/80 px-4 py-3">
           <p class="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
             Avg Views Per Video
@@ -106,6 +163,48 @@
             {formatCount(statsVideoViews)}
           </p>
           <p class="mt-1 text-sm text-stone-500">Across the last {statsVideos.length} videos</p>
+        </div>
+
+        <div class="rounded-2xl border border-stone-200/80 bg-stone-50/80 px-4 py-3">
+          <p class="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
+            Lowest Viewed Vid
+          </p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-stone-950">
+            {formatCount(statsVideoExtremes.lowest?.views ?? 0)}
+          </p>
+          <p class="mt-1 text-sm text-stone-500">
+            {#if statsVideoExtremes.lowest}
+              {formatCount(statsVideoExtremes.lowest.deltaFromAverage)} below avg
+            {:else}
+              No videos in window
+            {/if}
+          </p>
+          {#if statsVideoExtremes.lowest}
+            <p class="mt-2 text-sm text-stone-600">
+              {formatDaysAgo(statsVideoExtremes.lowest.video.publishedAt)}
+            </p>
+          {/if}
+        </div>
+
+        <div class="rounded-2xl border border-stone-200/80 bg-stone-50/80 px-4 py-3">
+          <p class="text-xs font-medium uppercase tracking-[0.2em] text-stone-500">
+            Most Viewed Vid
+          </p>
+          <p class="mt-2 text-2xl font-semibold tracking-tight text-stone-950">
+            {formatCount(statsVideoExtremes.highest?.views ?? 0)}
+          </p>
+          <p class="mt-1 text-sm text-stone-500">
+            {#if statsVideoExtremes.highest}
+              {formatCount(statsVideoExtremes.highest.deltaFromAverage)} above avg
+            {:else}
+              No videos in window
+            {/if}
+          </p>
+          {#if statsVideoExtremes.highest}
+            <p class="mt-2 text-sm text-stone-600">
+              {formatDaysAgo(statsVideoExtremes.highest.video.publishedAt)}
+            </p>
+          {/if}
         </div>
       </div>
     </div>
